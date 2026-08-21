@@ -1,30 +1,20 @@
-# COP5725 Project — [Your Name]
+# COP5725 Project — Rithika Mathew
 
 ## Program
-[e.g., MS in Computer Science, University of Florida]
+MS in Computer Science, University of Florida
 
 ## Dataset
-**Claimed dataset:** [fill in the dataset slice you claimed from student-roster.md]
+**Claimed dataset:** NYC Yellow Taxi — 2024-01 slice (tentative, pending roster PR)
 
-**Why it interests me:** [1-3 sentences on why you picked it]
+**Why it interests me:** I work on transportation and micromobility research, so a large real-world trip dataset with time-series and spatial structure fits well with my background and lets me apply database concepts to a domain I already know.
 
 ## Local Environment Setup
 
 Installed and verified locally on macOS (Apple Silicon):
 
-```bash
-# uv (Python package/env manager)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# PostgreSQL 17 via Homebrew
-brew install postgresql@17
-brew services start postgresql@17
-
-# Project + dependencies
-uv init cop5725fa26-project
-cd cop5725fa26-project
-uv add psycopg duckdb pandas
-```
+- uv (Python package/env manager): curl -LsSf https://astral.sh/uv/install.sh | sh
+- PostgreSQL 17 via Homebrew: brew install postgresql@17 && brew services start postgresql@17
+- Project + dependencies: uv init cop5725fa26-project && cd cop5725fa26-project && uv add psycopg duckdb pandas
 
 ## Semester Plan
-[One-line summary of what you plan to do with this dataset across the semester]
+Build out a normalized schema and query pipeline around NYC Yellow Taxi trip data, progressing from basic SQL through joins, aggregation, window functions, and performance tuning across the semester.

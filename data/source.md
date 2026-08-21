@@ -1,16 +1,21 @@
 # Data Source
 
-**Dataset name:** [fill in]
+**Dataset name:** NYC Yellow Taxi Trip Data — 2024-01 (Yellow)
 
 **URL / fetch instructions:**
-[Exact URL or command to download the raw data]
+Loadable directly via DuckDB, no download or signup required:
+read_parquet('https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-01.parquet')
+
+Sample regeneration (first 1000 rows):
+python: duckdb.sql("SELECT * FROM read_parquet('...') LIMIT 1000").df().to_csv('data/sample.csv', index=False)
 
 **License:**
-[e.g., Creative Commons Attribution 4.0, Public Domain, ODbL, etc.]
+Public domain / NYC Open Data terms. Data is pseudonymized, not anonymized. See https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page
 
 **Approximate size:**
-- Row count: [fill in]
-- Table count: [fill in]
+- Row count: ~2.96 million (January 2024 slice)
+- Table count: 1 (single trip-level table)
+- Columns: 19 (VendorID, pickup/dropoff timestamps, passenger_count, trip_distance, RatecodeID, PULocationID, DOLocationID, payment_type, fare/tip/tolls/tax breakdown, total_amount, congestion_surcharge, Airport_fee)
 
 **Update frequency:**
-[e.g., updated monthly, static/one-time release, updated annually]
+Published monthly by NYC TLC; this project uses a fixed historical month (2024-01) for reproducibility.
