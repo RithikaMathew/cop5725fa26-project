@@ -1,0 +1,3 @@
+column1,column2,column3
+# TODO: replace this with the first 1000 rows of your actual claimed dataset
+# This file must be reproducible from data/source.md + setup/verify.py instructions
