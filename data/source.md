@@ -1,21 +1,37 @@
 # Data Source
 
-**Dataset name:** NYC Yellow Taxi Trip Data — 2024-01 (Yellow)
+**Dataset name:** Hacker News — 2024 story submissions
 
 **URL / fetch instructions:**
-Loadable directly via DuckDB, no download or signup required:
-read_parquet('https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-01.parquet')
+Loadable with no signup or auth key via the Algolia HN Search API (mirrors the official Hacker News API):
 
-Sample regeneration (first 1000 rows):
-python: duckdb.sql("SELECT * FROM read_parquet('...') LIMIT 1000").df().to_csv('data/sample.csv', index=False)
+```
+https://hn.algolia.com/api/v1/search_by_date?tags=story&numericFilters=created_at_i>=1704067200,created_at_i<1735689600&hitsPerPage=1000
+```
+
+Sample regeneration (1000 most recent stories in the 2024 window):
+
+```python
+import requests, pandas as pd
+
+resp = requests.get(
+    "https://hn.algolia.com/api/v1/search_by_date",
+    params={
+        "tags": "story",
+        "numericFilters": "created_at_i>=1704067200,created_at_i<1735689600",
+        "hitsPerPage": 1000,
+    },
+)
+pd.DataFrame(resp.json()["hits"]).to_csv("data/sample.csv", index=False)
+```
 
 **License:**
-Public domain / NYC Open Data terms. Data is pseudonymized, not anonymized. See https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page
+The Algolia HN Search API mirrors data served by the official Hacker News API (HackerNews/API), which is MIT-licensed and has no rate limit or auth requirement. See https://github.com/HackerNews/API.
 
 **Approximate size:**
-- Row count: ~2.96 million (January 2024 slice)
-- Table count: 1 (single trip-level table)
-- Columns: 19 (VendorID, pickup/dropoff timestamps, passenger_count, trip_distance, RatecodeID, PULocationID, DOLocationID, payment_type, fare/tip/tolls/tax breakdown, total_amount, congestion_surcharge, Airport_fee)
+- Row count: 210,440 story submissions in 2024; 220,490 comments in the same window (both exact counts via nbHits from the search_by_date endpoint, run 2026-08-21)
+- Table count: 2 conceptual tables (stories, comments) — comments nest under stories in a tree via each item's `parent`/`kids` field
+- Columns (stories, via this API): objectID (story id), story_id, title, url, author, points, num_comments, created_at / created_at_i, updated_at, story_text (if any), children (child comment IDs), _tags
 
 **Update frequency:**
-Published monthly by NYC TLC; this project uses a fixed historical month (2024-01) for reproducibility.
+Continuous, near real-time; this project uses a fixed date range (2024-01-01 to 2025-01-01, UTC) for reproducibility.
