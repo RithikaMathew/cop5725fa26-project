@@ -58,3 +58,4 @@ if __name__ == "__main__":
         print(f"FAIL: {e}", file=sys.stderr)
         sys.exit(1)
     print("All checks passed.")
+    

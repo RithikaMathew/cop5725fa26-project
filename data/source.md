@@ -3,13 +3,11 @@
 **Dataset name:** Hacker News — 2024 story submissions
 
 **URL / fetch instructions:**
-Loadable with no signup or auth key via the Algolia HN Search API (mirrors the official Hacker News API):
+Loadable with no signup or auth key via the Algolia HN Search API:
 
-```
-https://hn.algolia.com/api/v1/search_by_date?tags=story&numericFilters=created_at_i>=1704067200,created_at_i<1735689600&hitsPerPage=1000
-```
+    https://hn.algolia.com/api/v1/search_by_date?tags=story&numericFilters=created_at_i>=1704067200,created_at_i<1735689600&hitsPerPage=1000
 
-Sample regeneration (1000 most recent stories in the 2024 window):
+Sample regeneration:
 
 ```python
 import requests, pandas as pd
@@ -26,12 +24,11 @@ pd.DataFrame(resp.json()["hits"]).to_csv("data/sample.csv", index=False)
 ```
 
 **License:**
-The Algolia HN Search API mirrors data served by the official Hacker News API (HackerNews/API), which is MIT-licensed and has no rate limit or auth requirement. See https://github.com/HackerNews/API.
+MIT (official Hacker News API, Y Combinator). See https://github.com/HackerNews/API.
 
 **Approximate size:**
-- Row count: 210,440 story submissions in 2024; 220,490 comments in the same window (both exact counts via nbHits from the search_by_date endpoint, run 2026-08-21)
-- Table count: 2 conceptual tables (stories, comments) — comments nest under stories in a tree via each item's `parent`/`kids` field
-- Columns (stories, via this API): objectID (story id), story_id, title, url, author, points, num_comments, created_at / created_at_i, updated_at, story_text (if any), children (child comment IDs), _tags
+- Row count: ~210,000 story submissions in 2024
+- Table count: 2 (stories, comments)
 
 **Update frequency:**
-Continuous, near real-time; this project uses a fixed date range (2024-01-01 to 2025-01-01, UTC) for reproducibility.
+Continuous, near real-time; this project uses a fixed 2024 date range for reproducibility.
