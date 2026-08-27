@@ -6,7 +6,7 @@ MS in Computer Science, University of Florida
 ## Dataset
 **Dataset:** Hacker News — 2024 story submissions (via the Algolia HN Search API)
 
-**Why it interests me:** I work on agentic AI, LLM pipelines, and RAG systems, so a dataset with a natural tree structure (stories → nested comment threads) and time-series submission/engagement patterns gives me a real-world analog for the graph- and sequence-heavy queries I care about, while staying squarely in COP5725's SQL/joins/recursion territory.
+**Why it interests me:** This dataset appeals to me because my research involves AI systems that work with chains of reasoning and pull in outside information, and this data has a similar shape: stories with comment threads branching off them, plus patterns of when people post and how others react over time. It's a nice way to practice the SQL joins and recursive queries this class focuses on, at the same time, connecting to the kind of tree like and time based data I deal with in my own work.
 
 ## Local Environment Setup
 
@@ -18,7 +18,7 @@ Installed and verified locally on macOS (Apple Silicon):
 
 ## Parquet vs. CSV
 
-Parquet is a columnar, binary, compressed file format designed for analytical workloads, as opposed to CSV, which is row-oriented, plain-text, and uncompressed. Because Parquet stores each column contiguously, an engine like DuckDB can read only the columns a query touches instead of scanning every row, and Parquet's built-in compression and embedded schema (column types, no re-parsing needed) make files smaller and faster to load than an equivalent CSV. CSV wins on portability and human-readability — any tool can open it, and it's easy to diff or eyeball in a text editor — which is why this repo still ships `data/sample.csv`. For a small, shareable, git-friendly sample, CSV is the right call; for the full multi-hundred-thousand-row dataset used in later projects, Parquet is the better default.
+Parquet is a file format built for handling large amounts of data quickly, and it works very differently from something simple like a CSV file. CSV stores everything as plain text (row by row) so a program has to read through the whole file even if it only needs one column. Parquet instead stores data column by column and compresses it, so a tool can grab just the columns it actually needs, which makes it much faster and smaller for big datasets. CSV still wins when you want something easy to open, read, or share (like a small sample file in this repo) while Parquet is the better choice once you're working with the full/ much larger dataset.
 
 ## Semester Plan
-Build out a schema and query pipeline around Hacker News stories and their comment trees, progressing from basic SQL through joins, aggregation, window functions, and recursive queries over the comment hierarchy across the semester.
+I can explore if posts that ask a question tend to get more replies than ones that just share a link or look into the URLs and titles to figure out which websites or topics show up most often as sources people share.

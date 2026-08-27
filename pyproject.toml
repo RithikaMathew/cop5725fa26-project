@@ -3,6 +3,9 @@ name = "cop5725fa26-project"
 version = "0.1.0"
 description = "COP5725 semester project: SQL/DuckDB pipeline over 2024 Hacker News story submissions"
 readme = "README.md"
+authors = [
+    { name = "Rithika Mathew", email = "rmathew1@ufl.edu" }
+]
 requires-python = ">=3.11"
 dependencies = [
     "duckdb>=1.5.5",
