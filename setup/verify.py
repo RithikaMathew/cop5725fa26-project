@@ -45,6 +45,11 @@ def check_postgres_optional():
     import psycopg
     with psycopg.connect(url) as conn:
         v = conn.execute("SELECT version()").fetchone()[0]
+    # Some older PostgreSQL servers (e.g. 9.x) don't negotiate encoding
+    # the way psycopg3 expects, so this can come back as bytes instead
+    # of str depending on the server.
+    if isinstance(v, bytes):
+        v = v.decode("utf-8", errors="replace")
     print(f"PostgreSQL: OK ({v.split(',')[0]})")
 
 if __name__ == "__main__":
