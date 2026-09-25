@@ -1,6 +1,5 @@
 -- q05.sql
--- Question: Which stories generated the deepest comment threads (a lot of different commenters), and who submitted them? 
--- Difficulty: medium
+-- Question: Which 2024 stories attracted the most different commenters, and who submitted those stories?-- Difficulty: medium
 SELECT
     s.story_id,
     s.title,

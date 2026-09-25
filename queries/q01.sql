@@ -9,4 +9,4 @@ FROM stories s
 JOIN domains d ON d.domain_id = s.domain_id
 GROUP BY d.domain_name
 ORDER BY story_count DESC
-LIMIT 20;
+LIMIT 100;
