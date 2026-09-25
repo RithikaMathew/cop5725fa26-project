@@ -1,5 +1,6 @@
 -- q05.sql
--- Question: Which 2024 stories attracted the most different commenters, and who submitted those stories?-- Difficulty: medium
+-- Question: Which 2024 stories attracted the most different commenters, and who submitted those stories?
+-- Difficulty: medium
 SELECT
     s.story_id,
     s.title,
