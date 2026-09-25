@@ -3,6 +3,7 @@
 **Dataset name:** Hacker News — 2024 story submissions
 
 **URL / fetch instructions:**
+
 Loadable with no signup or auth key via the Algolia HN Search API:
 
     https://hn.algolia.com/api/v1/search_by_date?tags=story&numericFilters=created_at_i>=1704067200,created_at_i<1735689600&hitsPerPage=1000
@@ -27,8 +28,8 @@ pd.DataFrame(resp.json()["hits"]).to_csv("data/sample.csv", index=False)
 MIT (official Hacker News API, Y Combinator). See https://github.com/HackerNews/API.
 
 **Approximate size:**
-- Row count: ~210,000 story submissions in 2024
-- Table count: 2 (stories, comments)
+- Row count: 200,375 story submissions in 2024
+- Table count: 3 raw item types pulled from the API (stories, comments, poll options); normalized in `schema.sql` into 7 relational tables
 
 **Update frequency:**
 Continuous, near real-time; this project uses a fixed 2024 date range for reproducibility.

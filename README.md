@@ -22,3 +22,72 @@ Parquet is a file format built for handling large amounts of data quickly, and i
 
 ## Semester Plan
 I can explore if posts that ask a question tend to get more replies than ones that just share a link or look into the URLs and titles to figure out which websites or topics show up most often as sources people share.
+
+## Project 1: Schema Design and SQL ETL
+
+### Scenario
+
+As a developer relations analyst for a company making AI and agentic developer tools, I want to see which related stories get attention on Hacker News, which discussions attract many different commenters, and which users contribute often.
+
+### Schema
+
+`schema.sql` creates seven tables for Hacker News stories from 2024. The `stories` table has each post, including links, Ask HN questions, Show HN posts, and polls. The `users` table stores usernames, and `domains` stores website names, so those values do not have to be repeated as separate records for every story. The `story_tags` table stores the multiple tags a story can have. The `comments` table links each comment to its story and, when applicable, to the comment it replies to. Finally, `polls` and `poll_options` store polls and their answer choices. The relationships are shown in `er-diagram.png`.
+
+### Fetching and Loading the Data
+
+1. Start the database and get a live connection string — the password rotates every server start, so `.env.example` is a template only, not a usable value:
+
+```bash
+   /blue/cop5725/share/pg-tools/pg-start.sh
+   until squeue -u rmathew1 -n postgres-rmathew1 -h -o "%T" | grep -q RUNNING; do sleep 5; done
+   /blue/cop5725/share/pg-tools/pg-info.sh | grep -m1 -o 'DATABASE_URL=.*' > .env
+```
+
+2. Check the environment with `uv run --env-file .env setup/verify.py`.
+3. Fetch and load the data with:
+
+```bash
+   uv run --env-file .env load.py
+```
+
+The normal command fetches data for the full 2024 date range. For a quick test, `uv run --env-file .env load.py --demo` fetches a smaller sample. The loader saves the fetched records as JSON in `data/raw/`. It then runs `schema.sql` to recreate the tables and inserts the records with `psycopg`. Running the loader again rebuilds the database rather than adding duplicate rows.
+
+### Running a Query
+
+`psql` isn't on `$PATH` by default on the HiPerGator login node so load it first. `$DATABASE_URL` also needs to be exported into your shell; `.env` alone isn't enough outside `uv run --env-file .env`.
+
+1. Start the database (if not already running) and get a live connection string — the password rotates every start, so pull it fresh each session:
+
+```bash
+   /blue/cop5725/share/pg-tools/pg-start.sh
+   until squeue -u rmathew1 -n postgres-rmathew1 -h -o "%T" | grep -q RUNNING; do sleep 5; done
+   /blue/cop5725/share/pg-tools/pg-info.sh | grep -m1 -o 'DATABASE_URL=.*' > .env
+```
+
+2. Load `psql` and export the connection string into your shell:
+
+```bash
+   module load ubuntu
+   set -a; source .env; set +a
+```
+
+3. Run a query, saving its header and first 100 result rows:
+
+```bash
+   mkdir -p queries/results
+   psql "$DATABASE_URL" --csv -f queries/q01.sql | head -n 101 > queries/results/q01.csv
+```
+
+   Repeat for `q02.sql` through `q08.sql`, saving each result under the matching filename in `queries/results/`.
+
+### Data Included
+
+The loader requests stories, polls, and comments created from January 1, 2024, up to but not including January 1, 2025. It also retrieves answer choices for the polls it finds. Comments are loaded only when their parent story is also in the selected stories.
+
+### Data Quirks
+
+* Algolia search results do not include a user's karma, signup date, or profile description. The date stored for a user is the earliest story or comment by that username found in this dataset; it is **not** the user's signup date.
+* Story and comment text can contain HTML tags and escaped characters rather than plain text.
+* The loader selects stories posted in 2024 and comments posted in 2024. A comment posted in 2024 might be a reply to a story posted in 2023. Since that 2023 story is not in the stories table, the loader skips the comment; otherwise, its story_id would point to a story that is missing from the database.
+* Poll option IDs are found through Algolia, while the option text and scores are retrieved from the Hacker News Firebase API.
+* Algolia limits how many search results can be retrieved from one request. The loader splits the year into smaller date ranges to collect the full period.
