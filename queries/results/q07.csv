@@ -1,42 +1,101 @@
-poll_title,poll_story_points,option_text,winning_option_points
-Poll: Is AI Hype a Bubble?,60,Overhyped and likely to lead to disappointment in the near future.,246
-Poll: Do you use browser profiles?,25,"No, I do not",79
-Poll: Would you accept a 25% pay cut in exchange for a 4 day workweek?,16,No,45
-Poll: Which front end framework do you prefer?,11,react,5
-Poll: How much do you care about platform interoperability?,11,Very much,46
-Poll HN: How many browser tabs do you have open?,7,1 to 10,7
-Poll: Do you have a ham radio license?,7,"Hard no - never had one, never thought about it",8
-Poll: Is Dan Luu Right About Website Styling?,6,"Yes, Dan Luu is right; he is a prophet, and you are a heretic for having *any* CSS at all!",5
-Poll: What operating system do you use?,6,Linux,9
-Poll: Where Do You Live?,5,Europe,7
-Poll: Do you think the free version ChatGPT will be over soon?,5,"No, it will remain free",3
-Poll: Do You Like Discord?,4,No — Discord is not great,9
-Poll: Should guidelines be updated to discourage posting 'AI' generated content?,4,Yes,6
-Poll: Favorite Programming Language?,4,Python,5
-Poll: Cultures of HN,4,Europe,8
-Poll: How much programming do you do?,3,"All day, back-end, it&#x27;s my job;",6
-Poll: How many hours a day are you effective?,3,4,3
-Poll: Which browsers do you use?,3,Mozilla Firefox,6
-Poll: Is Google Your Default Search?,3,no,7
-Poll: Light mode? Dark mode? Auto?,3,dark,4
-Poll: Are You Running PostgreSQL on 32-Bit Hardware?,3,"No, I&#x27;m not running a PostgreSQL server on 32-bit hardware.",3
-"Poll: Ask ""Alexa, is negative fifty even or odd?""",3,Negative 50 is an even number.,2
-Poll: What search engine are you using?,3,DuckDuckGo,8
-Poll: Where Do You Live?,3,Argentina,2
-Poll: How many months to Starship milestones completion?,3,never,3
-Poll: Is quantity or quality of calories more important,2,Bob (quantity),2
-Poll: The first Crowdstrike disaster of 2024 - Ignorance or Malice?,2,malice,2
-Poll: Are you currently subscribed to any of the LLM premium tiers?,2,No,8
-Poll: Are middle-managers and directors the problem at where you work?,2,"Yes, most of the time",2
-Poll HN: Which Front end Framework would you choose for a Greenfield Project?,2,Svelte,3
-Poll: Do you primarily code sitting or standing?,2,"Sitting, in a chair",7
-Poll: Are you German? Did you complain about something on HN in the last week?,1,Not German &#x2F; did complain,5
-Poll: How many unread HN posts have you have saved in your to-read list?,1,None &#x2F; not applicable,5
-Poll: Social Media Calendars,1,No,1
-"Poll: Your startup made a time machine. Go back in time or forward, and how far?",1,500 million years forward,2
-Poll: Do you use Anthropic or OpenAI APIs?,1,OpenAI (GPT 4o),3
-Poll: Untested Bird Flu Dairy Boycott,1,No,12
-Poll: Should I compile my thoughts about addiction?,1,"Yes, anything’s better than jail&#x2F;prison for helping people with their compulsive behavior",2
-Poll: When will we see full Linux distros as official iPhone apps?,1,Never!,2
-Poll: Are Mornings for Work or Play?,1,Work,2
-Poll: Are You a Dreamer or Realist?,1,Dreamer,4
+username,stories_posted,comments_posted
+JumpCrisscross,1075,6295
+pjmlp,219,5460
+dang,5,5193
+fragmede,22,4311
+toomuchtodo,563,4252
+ChrisArchitect,206,4048
+ben_w,4,3730
+082349872349872,184,3696
+dylan604,19,3664
+tptacek,11,3641
+JohnFen,0,3430
+kragen,0,3285
+gnabgib,947,3268
+defrost,153,3225
+lolinder,37,2956
+ghaff,4,2941
+s1artibartfast,2,2914
+lxgr,7,2877
+PaulHoule,5257,2803
+bluGill,0,2728
+stavros,2,2704
+layer8,83,2683
+wkat4242,5,2658
+bombcar,1,2650
+WalterBright,1,2619
+Terr_,0,2606
+eru,1,2605
+Dylan16807,0,2602
+talldayo,10,2597
+johnnyanmac,0,2545
+bee_rider,0,2515
+solardev,18,2486
+Animats,29,2452
+hinkley,0,2431
+immibis,12,2402
+amelius,23,2395
+pfdietz,17,2381
+shiroiushi,0,2377
+SoftTalker,3,2357
+account42,0,2354
+kelnos,5,2290
+alephnerd,100,2287
+TeMPOraL,1,2287
+robertlagrant,5,2260
+ceejayoz,107,2208
+kazinator,11,2203
+randomdata,0,2193
+int_19h,1,2189
+exe34,0,2125
+gruez,1,2102
+ryandrake,4,2100
+Dalewyn,0,2100
+ethbr1,19,2092
+lazide,0,2075
+AnthonyMouse,0,2075
+marcosdumay,0,2064
+IshKebab,0,2058
+saagarjha,0,2025
+_heimdall,5,2024
+throwup238,380,2022
+simonw,46,2022
+akira2501,0,2002
+Retric,0,1998
+nradov,89,1970
+rsynnott,0,1965
+m463,135,1940
+giantg2,18,1927
+bell-cot,14,1926
+bookofjoe,3393,1925
+lupire,1,1889
+yjftsjthsd-h,0,1864
+acdha,4,1861
+toast0,0,1861
+AnimalMuppet,3,1858
+seanmcdirmid,0,1857
+lotsofpulp,0,1822
+viraptor,7,1803
+coldtea,3,1789
+blackeyeblitzar,51,1787
+vundercind,0,1765
+diggan,101,1761
+paxys,6,1760
+kstrauser,0,1756
+Rinzler89,165,1751
+justinclift,38,1746
+roenxi,4,1743
+bryanlarsen,0,1737
+lupusreal,1,1734
+dartos,0,1731
+rbanffy,3066,1728
+neilv,13,1717
+wolverine876,75,1710
+ggm,31,1694
+lmm,1,1691
+nottorp,3,1686
+dredmorbius,78,1675
+tim333,1,1669
+thaumasiotes,1,1668
+al_borland,0,1664
+jsheard,32,1659

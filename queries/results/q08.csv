@@ -1,16 +1,101 @@
-username,comments_posted,stories_posted
-JumpCrisscross,6295,1075
-pjmlp,5460,219
-dang,5193,5
-fragmede,4311,22
-toomuchtodo,4252,563
-ChrisArchitect,4048,206
-ben_w,3730,4
-082349872349872,3696,184
-dylan604,3664,19
-tptacek,3641,11
-JohnFen,3430,0
-kragen,3285,0
-gnabgib,3268,947
-defrost,3225,153
-lolinder,2956,37
+title,submitted_by,points,comments_received
+Show HN: If YouTube had actual channels,hadisafa,2741,514
+Show HN: I designed an espresso machine and coffee grinder,smeeeeeeeeeeeee,797,477
+"Show HN: iFixit created a new USB-C, repairable soldering system",kwiens,928,405
+Show HN: Pls Fix – Hire big tech employees to appeal account suspensions,jpdpeters,444,397
+Show HN: I built a(nother) house optimized for LAN parties,kentonv,1117,381
+Show HN: App that asks ‘why?’ every time you unlock your phone,jarko27,817,381
+Show HN: Meet.hn – Meet the Hacker News community in your city,sirobg,768,372
+"Show HN: 3 years and 1M users later, I just open-sourced my ""Internet OS""",ent101,1274,319
+Show HN: A macOS app to prevent sound quality degradation on AirPods,mrtksn,223,309
+Show HN: I made a tiny camera with super long battery life,davekeck,843,299
+Show HN: InstantDB – A Modern Firebase,nezaj,1145,297
+Show HN: Infinity – Realistic AI characters that can speak,lcolucci,481,294
+Show HN: Atopile – Design circuit boards with code,Timot05,595,292
+Show HN: Comma Separated Values (CSV) to Unicode Separated Values (USV),jph,208,287
+Show HN: Improve cognitive focus in 1 minute,junetic,741,285
+Show HN: GodotOS – Fake operating system interface made in the Godot engine,popcar2,534,280
+Show HN: Aldi Price Map,ayocado,348,270
+"Show HN: Wealthfolio: Private, open-source investment tracker",a-fadil,924,263
+"Show HN: I made an app that consolidated 18 apps (doc, sheet, form, site, chat…)",harrisonlo,810,258
+Show HN: Rust Web Framework,levkk,488,258
+Show HN: I created an After Effects alternative,clementpiki,1150,258
+Show HN: A real time AI video agent with under 1 second of latency,hassaanr,455,256
+"Show HN: One – A new React framework unifying web, native and local-first",nwienert,506,254
+Show HN: I made a free animator. Think Adobe Illustrator but for animation,trangram,738,247
+Show HN: htmz – a low power tool for HTML,Kalabasa,1020,242
+Show HN: I made an app to use local AI as daily driver,xyc,637,237
+Show HN: Sonauto – A more controllable AI music creator,zaptrem,454,235
+Show HN: OpenFreeMap – Open-Source Map Hosting,hyperknot,848,234
+Show HN: A web debugger an ex-Cloudflare team has been working on for 4 years,thedg,886,233
+"Show HN: Agent.exe, a cross-platform app to let 3.5 Sonnet control your machine",kcorbitt,406,232
+Show HN: I built an app to use a QR code as my doorbell,dirkc,140,231
+Show HN: A Marble Madness-inspired WebGL game we built for Netlify,franck,616,230
+Show HN: Memories – FOSS Google Photos alternative built for high performance,radialapps,797,230
+"Show HN: My $1k self-install, off-grid solar backup build for renters",nikodunk,236,229
+Show HN: Kotlin Money,eriksencosta,427,228
+Show HN: I made a free app to calibrate your turntable by simply playing a song,okatbest,452,227
+"Show HN: Godspeed is a fast, 100% keyboard oriented todo app for Mac",DanielDe,328,223
+"Show HN: Tinder, but to decide what to eat",kiru_io,266,222
+Show HN: BandMatch – “Tinder” but for finding musicians to create bands/collab,pg5,452,222
+Show HN: HTML for People,blakewatson,677,220
+Show HN: I made a tool to compare time zones,kamranahmedse,758,219
+Show HN: We built the fastest spreadsheet,gamegoblin,274,218
+Show HN: I am building an open-source Confluence and Notion alternative,Pi9h,551,217
+Show HN: Haystack – an IDE for exploring and editing code on an infinite canvas,akshaysg,546,214
+"Show HN: 2048 turned 10 this year, I built an updated version to celebrate",terabytest,669,212
+Show HN: CommitAsync – $100K+ dev jobs 100% remote only,lucianh,204,210
+Show HN: I made a website to find best bus seat to avoid the sun while traveling,Amithv,963,210
+Show HN: HackerNews but for research papers,sleno,319,208
+Show HN: Horizon – Private alternative to Imgur,sweca,361,206
+Show HN: From dotenv to dotenvx – better config management,scottmotte,354,206
+Show HN: I made a Note-Taking app for people who keep texting themselves,eguchi1904,219,201
+Show HN: I've spent nearly 5y on a web app that creates 3D apartments,streakolay,694,200
+Show HN: Container Desktop – Podman Desktop Companion,istoica,464,200
+Show HN: Cut the crap – remove AI bullshit from websites,muc-martin,356,200
+"Show HN: Detecting adblock, without JavaScript, by abusing HTTP 103 responses",mechazawa,108,199
+Show HN: I made a privacy friendly and simple app to track my menstruation,stormqueen,732,196
+Show HN: I made a tiny device for automatically recording digital pianos,chipweinberger,590,194
+Show HN: Kyoo – Self-hosted media browser (Jellyfin/Plex alternative),zoriya,258,193
+Show HN: Flox 1.0 – Open-source dev env as code with Nix,ronef,382,192
+Show HN: Voice-Pro – AI Voice Cloning,abuskorea,271,189
+Show HN: Hatchet – Open-source distributed task queue,abelanger,578,189
+Show HN: Not sure you're talking to a human? Create a human check,jmor9751,178,189
+"Show HN: gpudeploy.com – ""Airbnb"" for GPUs",nicowaltz,267,188
+Show HN: I made a cheap alternative to college-level math & physics tutoring,eltonlin,391,187
+"Show HN: Shpool, a Lightweight Tmux Alternative",ethanpailes,323,184
+"Show HN: Every mountain, building and tree shadow mapped for any date and time",tppiotrowski,685,183
+Show HN: Brutalist Hacker News – A HN reader inspired by brutalist web design,wkyleg,101,181
+Show HN: Multi-monitor KVM using just a USB switch,fiddyschmitt,397,181
+Show HN: HN Update – Hourly news broadcast of top HN stories,yunusabd,644,178
+Show HN: I made an open-source Loom alternative,mcilroy,351,177
+Show HN: We built PriceLevel to find out what companies pay for SaaS,cluo21,532,176
+Show HN: RF Hunter – Find hidden cameras and other devices,RamboRogers,594,175
+Show HN: Resurrecting the Dillo browser,rodarima,599,174
+Show HN: Stretch My Time Off – An Algorithm to Optimize Your Vacation Days,zachd,358,174
+Show HN: #!/usr/bin/env docker run,adtac,496,173
+Show HN: I made a puzzle game that gently introduces my favorite math mysteries,MCSP,1054,172
+Show HN: LLM-aided OCR – Correcting Tesseract OCR errors with LLMs,eigenvalue,479,172
+Show HN: I made a Mac app to search my images and videos locally with ML,correa_brian,217,171
+"Show HN: Aide, an open-source AI native IDE",skp1995,253,169
+Show HN: I built an open-source tool to make on-call suck less,aray07,319,169
+Show HN: I Wrote a Book on Java,goostavos,586,168
+"Show HN: Natural-SQL-7B, a strong text-to-SQL model",thecalebf,362,168
+Show HN: Open-source Counter-Strike-like game,solcloud,420,168
+Show HN: ChatGPT UI for rabbit holes,maxkrieger,766,167
+"Show HN: CompressX, my FFmpeg wrapper for macOS",hieu_dinh,170,166
+Show HN: RAM Prices,generalizations,241,165
+Show HN: Open-source private home security camera system (end-to-end encryption),arrdalan,551,165
+Show HN: I made an app that helps you find where to stream movies and TV shows,danilotanic,335,165
+Show HN: Free mortgage analysis tool to avoid getting screwed by closing costs,aaln,273,164
+Show HN: Repaint – a WebGL based website builder,benshumaker,236,164
+Show HN: Using Google Sheets as the back end/APIs of your app,joaovcoliveira,356,162
+Show HN: Startup funding simulator,zikero,654,161
+Show HN: A minimalist (brutalist?) website for sharing all your links,TravisPeacock,303,160
+Show HN: A modern Jupyter client for macOS,jackhodkinson,611,160
+Show HN: Citadel – a Calibre-compatible eBook management app,phildenhoff,338,159
+Show HN: Exploring HN by mapping and analyzing 40M posts and comments for fun,wilsonzlin,520,159
+Show HN: I created an app for you to be a more unpredictable romantic partner,Joakim_Habekost,106,159
+Show HN: We made a small and cheap network switch,byran,666,158
+Show HN: Drop-in SQS replacement based on SQLite,memset,656,156
+"Show HN: Glossarie – a new, immersive way to learn a language",jonathanb88,363,155
