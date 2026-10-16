@@ -91,3 +91,62 @@ The loader requests stories, polls, and comments created from January 1, 2024, u
 * The loader selects stories posted in 2024 and comments posted in 2024. A comment posted in 2024 might be a reply to a story posted in 2023. Since that 2023 story is not in the stories table, the loader skips the comment; otherwise, its story_id would point to a story that is missing from the database.
 * Poll option IDs are found through Algolia, while the option text and scores are retrieved from the Hacker News Firebase API.
 * Algolia limits how many search results can be retrieved from one request. The loader splits the year into smaller date ranges to collect the full period.
+
+
+## Project 2: Advanced SQL Analytics
+
+Eleven query files in `analytics/` answer ten analytics questions about AI/agent-related Hacker News stories for the DevRel scenario above: running totals, top-N per group, month-over-month change, cumulative distribution, a recursive reply-chain traversal, a CTE pipeline, a naive-vs-window comparison (a07a/a07b, with EXPLAIN ANALYZE timings), URL deduplication, and two of my own (best posting hour, revived threads).
+
+Each query's question, purpose, sample result and interesting finding is in [`analytics/README.md`](analytics/README.md).
+
+### Starting from scratch (new session or fresh database)
+
+Everything below runs on the HiPerGator login node from the repo directory (`/blue/cop5725/rmathew1/cop5725fa26-project`). The Postgres server is a 4-hour SLURM job and the password changes on every start, so redo steps 1 and 2 each session.
+
+1. Start the database and write a live connection string (same as Project 1):
+
+```bash
+   /blue/cop5725/share/pg-tools/pg-start.sh
+   until squeue -u rmathew1 -n postgres-rmathew1 -h -o "%T" | grep -q RUNNING; do sleep 5; done
+   /blue/cop5725/share/pg-tools/pg-info.sh | grep -m1 -o 'DATABASE_URL=.*' > .env
+```
+
+2. Export the connection string and load `psql`:
+
+```bash
+   module load ubuntu
+   set -a; source .env; set +a
+```
+
+3. Check that the tables are filled (roughly 297,634 stories and 3,094,184 comments):
+
+```bash
+   psql "$DATABASE_URL" -c "SELECT count(*) FROM stories;" -c "SELECT count(*) FROM comments;"
+```
+
+4. If the counts are 0 (a fresh Postgres data directory), reload from the cached files in `data/raw/`. Run only one load at a time, because `load.py` drops and recreates the tables. The cached files make this much faster than the original download:
+
+```bash
+   uv run --env-file .env load.py            # same command as Project 1
+```
+
+   If `data/raw/` is empty too, `load.py` re-downloads everything from the Algolia API, which took about 2h45m the first time.
+
+5. Run all the analytics queries (about 2 minutes, mostly the recursive query a05):
+
+```bash
+   uv run --env-file .env analytics/run_queries.py
+```
+
+To run one file by itself, or to capture the a07a/a07b timings:
+
+```bash
+   psql "$DATABASE_URL" -f analytics/a05-recursive-hierarchy.sql
+   (echo "EXPLAIN ANALYZE"; cat analytics/a07a-naive.sql) | psql "$DATABASE_URL"
+```
+
+### Notes
+
+- "AI/agent-related" is a word-boundary regex on story titles (ai, llm, gpt, agent(s), openai, claude, and so on), so a few non-AI titles may match.
+- Months are bucketed in UTC, so stories from early January 1 do not fall into December 2023.
+- `loguru` was added as a dependency for `run_queries.py` (`uv add loguru`).
