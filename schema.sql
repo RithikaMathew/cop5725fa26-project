@@ -1,23 +1,22 @@
 -- COP5725 Project 1 — schema for Hacker News stories from 2024
 -- By: Rithika Mathew
 --
--- Each table is in 3NF. domains is normalized out of stories because the
--- same domain repeats on many stories. domain_name has no functional
--- dependency on story attributes like title or points.
+-- URL -> domain is stored in links; poll membership is represented by polls.
+-- User activity dates are derived in user_first_seen rather than duplicated.
 
 DROP TABLE IF EXISTS poll_options CASCADE;
 DROP TABLE IF EXISTS polls CASCADE;
 DROP TABLE IF EXISTS comments CASCADE;
 DROP TABLE IF EXISTS story_tags CASCADE;
 DROP TABLE IF EXISTS stories CASCADE;
+DROP TABLE IF EXISTS links CASCADE;
 DROP TABLE IF EXISTS domains CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
 -- users: author entity. Role: store each person once so a username is not
 -- repeated on every post, and so we can see who posts often.
 CREATE TABLE users (
-    username        TEXT PRIMARY KEY,
-    first_seen_at   TIMESTAMPTZ NOT NULL   -- earliest created_at for this user 
+    username        TEXT PRIMARY KEY
 );
 
 -- domains: normalized entity for the link host. Role: store each host once
@@ -27,24 +26,29 @@ CREATE TABLE domains (
     domain_name     TEXT NOT NULL UNIQUE
 );
 
+-- links: one host assignment per URL, avoiding URL -> domain in stories.
+CREATE TABLE links (
+    url TEXT PRIMARY KEY,
+    domain_id INTEGER REFERENCES domains(domain_id) ON DELETE SET NULL
+);
+
 -- stories: main entity for this slice. Role: one row per 2024 HN submission
 -- (link post, Ask HN, Show HN, or poll) and the facts about that post.
 -- is NULL when the post has no url.
 
 CREATE TABLE stories (
-    story_id        BIGINT PRIMARY KEY,              
+    story_id        BIGINT PRIMARY KEY,
     author          TEXT REFERENCES users(username) ON DELETE SET NULL,
-    domain_id       INTEGER REFERENCES domains(domain_id) ON DELETE SET NULL,  -- NULL for text-only posts
     title           TEXT NOT NULL,
-    url             TEXT,
-    story_text      TEXT,                             
+    url             TEXT REFERENCES links(url),
+    story_text      TEXT,
     points          INTEGER NOT NULL CHECK (points >= 0), --he score a story gets from votes
     num_comments    INTEGER NOT NULL DEFAULT 0 CHECK (num_comments >= 0),
     is_ask_hn       BOOLEAN NOT NULL DEFAULT FALSE,
     is_show_hn      BOOLEAN NOT NULL DEFAULT FALSE, --Ask HN stories are questions posted to the community, usually without a link to another website.
-    is_poll         BOOLEAN NOT NULL DEFAULT FALSE,
     created_at      TIMESTAMPTZ NOT NULL,
-    updated_at      TIMESTAMPTZ NOT NULL
+    updated_at      TIMESTAMPTZ NOT NULL,
+    CONSTRAINT one_kind CHECK (NOT (is_ask_hn AND is_show_hn))
 );
 
 -- story_tags: side table for a multi-valued attribute. Role: hold every tag
@@ -60,7 +64,7 @@ CREATE TABLE story_tags (
 -- which comment a reply is under.
 -- Self-referencing FK on parent_comment_id (ON DELETE CASCADE) is NULL for a top-level comment (direct reply to the story).
 CREATE TABLE comments (
-    comment_id          BIGINT PRIMARY KEY,             
+    comment_id          BIGINT PRIMARY KEY,
     story_id            BIGINT NOT NULL REFERENCES stories(story_id) ON DELETE CASCADE,
     parent_comment_id   BIGINT REFERENCES comments(comment_id) ON DELETE CASCADE,
     author              TEXT REFERENCES users(username) ON DELETE SET NULL,
@@ -69,17 +73,27 @@ CREATE TABLE comments (
 );
 
 -- polls: 1:1 subtype of stories. Role: only poll stories go here, so options
--- can FK to a poll instead of to every story. 
+-- can FK to a poll instead of to every story.
 CREATE TABLE polls (
-    poll_id         BIGINT PRIMARY KEY REFERENCES stories(story_id) ON DELETE CASCADE,
-    created_at      TIMESTAMPTZ NOT NULL
+    poll_id         BIGINT PRIMARY KEY REFERENCES stories(story_id) ON DELETE CASCADE
 );
 
 -- poll_options: child entity of a poll (1:N). Role: one row per choice on a
--- poll, with that choice's points. 
+-- poll, with that choice's points.
 CREATE TABLE poll_options (
-    poll_option_id  BIGINT PRIMARY KEY,                
+    poll_option_id  BIGINT PRIMARY KEY,
     poll_id         BIGINT NOT NULL REFERENCES polls(poll_id) ON DELETE CASCADE,
     option_text     TEXT,
     points          INTEGER NOT NULL DEFAULT 0 CHECK (points >= 0)
 );
+
+-- Earliest observed activity in the loaded slice, never an account signup date.
+CREATE OR REPLACE VIEW user_first_seen AS
+SELECT author AS username, min(created_at) AS first_seen_at
+FROM (
+    SELECT author, created_at FROM stories
+    UNION ALL
+    SELECT author, created_at FROM comments
+) activity
+WHERE author IS NOT NULL
+GROUP BY author;

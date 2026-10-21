@@ -31,7 +31,7 @@ As a developer relations analyst for a company making AI and agentic developer t
 
 ### Schema
 
-`schema.sql` creates seven tables for Hacker News stories from 2024. The `stories` table has each post, including links, Ask HN questions, Show HN posts, and polls. The `users` table stores usernames, and `domains` stores website names, so those values do not have to be repeated as separate records for every story. The `story_tags` table stores the multiple tags a story can have. The `comments` table links each comment to its story and, when applicable, to the comment it replies to. Finally, `polls` and `poll_options` store polls and their answer choices. The relationships are shown in `er-diagram.png`.
+`schema.sql` creates eight tables for Hacker News stories from 2024. The `stories` table has each post, including links, Ask HN questions, Show HN posts, and polls. The `users` table stores usernames, and `links` maps each distinct URL to its domain, and `domains` stores website names, so those values do not have to be repeated as separate records for every story. The `story_tags` table stores the multiple tags a story can have. The `comments` table links each comment to its story and, when applicable, to the comment it replies to. Finally, `polls` and `poll_options` store polls and their answer choices. The relationships are shown in [`er-diagram.md`](er-diagram.md) (current schema; `er-diagram.png` is the original Project 1 snapshot).
 
 ### Fetching and Loading the Data
 
@@ -43,7 +43,7 @@ As a developer relations analyst for a company making AI and agentic developer t
    /blue/cop5725/share/pg-tools/pg-info.sh | grep -m1 -o 'DATABASE_URL=.*' > .env
 ```
 
-2. Check the environment with `uv run --env-file .env setup/verify.py`.
+2. Use Python 3.11 or newer and run `uv sync`. Check the environment with `uv run --env-file .env setup/verify.py`.
 3. Fetch and load the data with:
 
 ```bash
@@ -69,6 +69,7 @@ The normal command fetches data for the full 2024 date range. For a quick test, 
 ```bash
    module load ubuntu
    set -a; source .env; set +a
+   export PGCLIENTENCODING=UTF8
 ```
 
 3. Run a query, saving its header and first 100 result rows:
@@ -86,7 +87,7 @@ The loader requests stories, polls, and comments created from January 1, 2024, u
 
 ### Data Quirks
 
-* Algolia search results do not include a user's karma, signup date, or profile description. The date stored for a user is the earliest story or comment by that username found in this dataset; it is **not** the user's signup date.
+* Algolia search results do not include a user's karma, signup date, or profile description. The `user_first_seen` view derives the earliest story or comment by that username found in this dataset; it is **not** the user's signup date.
 * Story and comment text can contain HTML tags and escaped characters rather than plain text.
 * The loader selects stories posted in 2024 and comments posted in 2024. A comment posted in 2024 might be a reply to a story posted in 2023. Since that 2023 story is not in the stories table, the loader skips the comment; otherwise, its story_id would point to a story that is missing from the database.
 * Poll option IDs are found through Algolia, while the option text and scores are retrieved from the Hacker News Firebase API.
@@ -116,9 +117,10 @@ Everything below runs on the HiPerGator login node from the repo directory (`/bl
 ```bash
    module load ubuntu
    set -a; source .env; set +a
+   export PGCLIENTENCODING=UTF8
 ```
 
-3. Check that the tables are filled (roughly 297,634 stories and 3,094,184 comments):
+3. Check that the tables are filled (297,634 stories and 3,094,184 comments in the October 21 full load; live API counts can change):
 
 ```bash
    psql "$DATABASE_URL" -c "SELECT count(*) FROM stories;" -c "SELECT count(*) FROM comments;"
@@ -130,9 +132,9 @@ Everything below runs on the HiPerGator login node from the repo directory (`/bl
    uv run --env-file .env load.py            # same command as Project 1
 ```
 
-   If `data/raw/` is empty too, `load.py` re-downloads everything from the Algolia API, which took about 2h45m the first time.
+   If `data/raw/` is empty too, `load.py` re-downloads everything from the Algolia API, which took about 3 hours on the grader’s first run; the October 21 cached reload took 16 minutes 37 seconds with two-pass comment linking.
 
-5. Run all the analytics queries (about 2 minutes, mostly the recursive query a05):
+5. Run all the analytics queries (allow several minutes; the latest a07a alone took about 3 minutes 27 seconds):
 
 ```bash
    uv run --env-file .env analytics/run_queries.py
@@ -147,6 +149,35 @@ To run one file by itself, or to capture the a07a/a07b timings:
 
 ### Notes
 
-- "AI/agent-related" is a word-boundary regex on story titles (ai, llm, gpt, agent(s), openai, claude, and so on), so a few non-AI titles may match.
+
 - Months are bucketed in UTC, so stories from early January 1 do not fall into December 2023.
 - `loguru` was added as a dependency for `run_queries.py` (`uv add loguru`).
+
+### Project 1 feedback corrections
+
+The schema now stores URL-to-domain assignments in `links`, removes the repeated
+poll timestamp and stored poll flag, and derives earliest user activity with
+`user_first_seen`. To get the flag, use
+`EXISTS (SELECT 1 FROM polls p WHERE p.poll_id = s.story_id)` on `stories s`.
+q01 joins through `links`; q03 uses UTC months; q04 surfaces count differences;
+q06 matches whole words. The loader logs skipped comments/options and inserts
+all comments before linking their parent IDs.
+
+The grader’s successful Project 1 load had: users 141,430; domains 60,195;
+stories 297,625; story_tags 330,573; comments 3,093,962; polls 41;
+poll_options 485. `links` is new and its count is the number of distinct nonempty
+URLs in the input. These are reference counts, not newly measured counts.
+`user_first_seen` only uses loaded activity, so excluded comments no longer affect it.
+For long downloads, run inside `tmux` on the approved course host so disconnecting
+does not interrupt the load. The loader rebuilds the tables on every invocation.
+
+The October 18 Project 2 erratum requires seven patterns and at least nine questions;
+a05 remains an optional extra.
+### Full load verified on HiPerGator — October 21, 2026
+
+The cached full load completed successfully in 16 minutes 37 seconds
+(10:21:32–10:38:09). Final counts: users 141,436; domains 60,202;
+links 244,535; stories 297,634; story_tags 330,585; comments 3,094,184;
+polls 41; poll_options 485. The loader skipped 23,573 comments whose stories
+were outside the slice and one poll option with a missing ID. These measured
+counts supersede the earlier Project 1 reference counts for this cache.

@@ -11,6 +11,7 @@ Demo downloads have separate filenames, so they cannot replace the full data.
 
 from __future__ import annotations
 
+from collections import Counter
 import argparse
 import json
 import logging
@@ -273,29 +274,14 @@ def load_users(
     story_hits: list[dict],
     comment_hits: list[dict],
 ) -> None:
-    seen: dict[str, str] = {}
-    for hit in story_hits + comment_hits:
-        author = hit.get("author")
-        ts = to_ts(hit)
-        if not author or not ts:
-            continue
-        if author not in seen or ts < seen[author]:
-            seen[author] = ts
-
-    rows = list(seen.items())
+    authors = sorted({h["author"] for h in story_hits + comment_hits if h.get("author")})
     with conn.cursor() as cur:
         cur.executemany(
-            """
-            INSERT INTO users (username, first_seen_at)
-            VALUES (%s, %s)
-            ON CONFLICT (username) DO UPDATE
-                SET first_seen_at =
-                    LEAST(users.first_seen_at, EXCLUDED.first_seen_at)
-            """,
-            rows,
+            "INSERT INTO users (username) VALUES (%s) ON CONFLICT DO NOTHING",
+            [(author,) for author in authors],
         )
     conn.commit()
-    log.info("Loaded %d users.", len(rows))
+    log.info("Loaded %d users.", len(authors))
 
 
 def load_domains(
@@ -346,20 +332,17 @@ def load_stories(
         seen_ids.add(story_id)
 
         tags = hit.get("_tags", [])
-        domain_name = domain_of(hit.get("url"))
         rows.append(
             (
                 story_id,
                 hit.get("author"),
-                domain_id_by_name.get(domain_name),
                 hit.get("title") or "(untitled)",
-                hit.get("url"),
+                hit.get("url") or None,
                 hit.get("story_text"),
                 hit.get("points") or 0,
                 hit.get("num_comments") or 0,
                 "ask_hn" in tags,
                 "show_hn" in tags,
-                "poll" in tags,
                 to_ts(hit),
                 hit.get("updated_at") or to_ts(hit),
             )
@@ -368,14 +351,20 @@ def load_stories(
             if not tag.startswith("author_") and not tag.startswith("story_"):
                 tag_rows.append((story_id, tag))
 
+    link_rows = {h["url"]: domain_id_by_name.get(domain_of(h["url"]))
+                 for h in story_hits if h.get("url")}
     with conn.cursor() as cur:
+        cur.executemany(
+            "INSERT INTO links (url, domain_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+            list(link_rows.items()),
+        )
         cur.executemany(
             """
             INSERT INTO stories
-                (story_id, author, domain_id, title, url, story_text,
-                 points, num_comments, is_ask_hn, is_show_hn, is_poll,
+                (story_id, author, title, url, story_text,
+                 points, num_comments, is_ask_hn, is_show_hn,
                  created_at, updated_at)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
             ON CONFLICT (story_id) DO NOTHING
             """,
             rows,
@@ -403,20 +392,24 @@ def load_comments(
 ) -> None:
     rows = []
     seen_ids: set[int] = set()
+    skipped = Counter()
 
     for hit in comment_hits:
         comment_id = hit.get("objectID")
         story_id = hit.get("story_id")
         if comment_id is None or story_id is None:
+            skipped["missing id"] += 1
             continue
 
         comment_id = int(comment_id)
         if comment_id in seen_ids:
+            skipped["duplicate id"] += 1
             continue
 
         story_id = int(story_id)
         if story_id not in story_ids:
             # A 2024 comment can belong to a story outside this story slice.
+            skipped["story outside the slice"] += 1
             continue
 
         seen_ids.add(comment_id)
@@ -432,33 +425,24 @@ def load_comments(
             )
         )
 
-    # Insert every comment first; then connect replies to loaded parents.
+    # Insert all comments before linking parents: real data can have a parent
+    # whose ID is larger than its reply's ID.
+    loaded_ids = {r[0] for r in rows}
     with conn.cursor() as cur:
         cur.executemany(
-            """
-            INSERT INTO comments
-                (comment_id, story_id, parent_comment_id,
-                 author, comment_text, created_at)
-            VALUES (%s,%s,NULL,%s,%s,%s)
-            ON CONFLICT (comment_id) DO NOTHING
-            """,
+            """INSERT INTO comments
+               (comment_id, story_id, parent_comment_id, author, comment_text, created_at)
+               VALUES (%s,%s,NULL,%s,%s,%s) ON CONFLICT DO NOTHING""",
             [(r[0], r[1], r[3], r[4], r[5]) for r in rows],
         )
-        loaded_ids = {r[0] for r in rows}
         cur.executemany(
-            """
-            UPDATE comments
-            SET parent_comment_id = %s
-            WHERE comment_id = %s
-            """,
-            [
-                (r[2], r[0])
-                for r in rows
-                if r[2] is not None and r[2] in loaded_ids
-            ],
+            "UPDATE comments SET parent_comment_id = %s WHERE comment_id = %s",
+            [(r[2], r[0]) for r in rows if r[2] in loaded_ids],
         )
     conn.commit()
     log.info("Loaded %d comments.", len(rows))
+    for reason, count in skipped.items():
+        log.warning("Skipped %d comments: %s", count, reason)
 
 
 def load_polls(
@@ -478,21 +462,27 @@ def load_polls(
             continue
 
         poll_ids.add(poll_id)
-        poll_rows.append((poll_id, to_ts(hit)))
+        poll_rows.append((poll_id,))
 
     option_rows = []
     seen_opts: set[int] = set()
+    skipped = Counter()
 
     for hit in poll_opt_hits:
         opt_id = hit.get("objectID")
         poll_id = hit.get("story_id") or hit.get("parent_id")
         if opt_id is None or poll_id is None:
+            skipped["missing id"] += 1
             continue
 
         opt_id = int(opt_id)
         poll_id = int(poll_id)
 
-        if opt_id in seen_opts or poll_id not in poll_ids:
+        if opt_id in seen_opts:
+            skipped["duplicate id"] += 1
+            continue
+        if poll_id not in poll_ids:
+            skipped["poll not loaded"] += 1
             continue
 
         seen_opts.add(opt_id)
@@ -508,8 +498,8 @@ def load_polls(
     with conn.cursor() as cur:
         cur.executemany(
             """
-            INSERT INTO polls (poll_id, created_at)
-            VALUES (%s, %s)
+            INSERT INTO polls (poll_id)
+            VALUES (%s)
             ON CONFLICT (poll_id) DO NOTHING
             """,
             poll_rows,
@@ -525,6 +515,8 @@ def load_polls(
         )
 
     conn.commit()
+    for reason, count in skipped.items():
+        log.warning("Skipped %d poll options: %s", count, reason)
     log.info(
         "Loaded %d polls, %d poll_options.",
         len(poll_rows),
@@ -535,6 +527,7 @@ def print_row_counts(conn: psycopg.Connection) -> None:
     tables = [
         "users",
         "domains",
+        "links",
         "stories",
         "story_tags",
         "comments",
@@ -563,7 +556,7 @@ def main() -> None:
         sys.exit(1)
 
     # Recreate the database before loading, including when using cached data.
-    with psycopg.connect(database_url) as conn:
+    with psycopg.connect(database_url, client_encoding="UTF8") as conn:
         run_schema(conn)
 
     story_hits = read_raw("stories", args.demo)
@@ -610,7 +603,7 @@ def main() -> None:
         dump_raw("poll_options", poll_opt_hits, args.demo)
     write_sample("poll_options", poll_opt_hits)
 
-    with psycopg.connect(database_url) as conn:
+    with psycopg.connect(database_url, client_encoding="UTF8") as conn:
         load_users(conn, story_hits, comment_hits)
         domain_id_by_name = load_domains(conn, story_hits)
         load_stories(conn, story_hits, domain_id_by_name)

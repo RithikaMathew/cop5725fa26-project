@@ -4,6 +4,9 @@ Scenario (from Project 1): I am a developer relations analyst at a company that 
 
 "AI/agent-related" means the story title matches a word-boundary regex for terms like ai, llm, gpt, agent(s), agentic, openai, anthropic, claude, copilot, rag, gemini, llama and mistral. The same filter is used in every AI query. Months are bucketed in UTC.
 
+The October 18 erratum removed mandatory recursion: the seven required patterns
+are a01–a04 and a06–a08; a05 is an optional extra alongside a09 and a10.
+
 Run everything: `uv run --env-file .env analytics/run_queries.py`
 
 ## a01: Running total of AI stories
@@ -89,7 +92,7 @@ Run everything: `uv run --env-file .env analytics/run_queries.py`
 | State-space models can learn in-context by gradient descent | dsalaj | 86 | 41 | 58 |
 | Israel shuts down local Al Jazeera offices | jjgreen | 783 | 36 | 1353 |
 
-- Interesting result: Having more comments doesn't always mean having longer reply chains. This query finds which stories have the deepest reply chains. For example, the Soviet helicopter story had 175 comments, with its longest conversation reaching 52 levels deep, while the Daniel Dennett story had 630 comments but only reached 46 levels. This shows that having more comments doesn't necessarily mean having longer back-and-forth conversations. The query took about 103.5 seconds to run.
+- Interesting result: Having more comments doesn't always mean having longer reply chains. This query finds which stories have the deepest reply chains. For example, the Soviet helicopter story had 175 comments, with its longest conversation reaching 52 levels deep, while the Daniel Dennett story had 630 comments but only reached 46 levels. This shows that having more comments doesn't necessarily mean having longer back-and-forth conversations. The query took about 103.5 seconds to run. Depth 1 includes orphaned replies whose parents were not loaded; depths describe the loaded forest, not necessarily the complete HN thread.
 
 ## a06: Most active commenters in AI threads
 
@@ -123,7 +126,7 @@ Run everything: `uv run --env-file .env analytics/run_queries.py`
 | US Supreme Court's Roberts urges 'caution' as AI reshapes legal field | 2024-01 | 7 | -7.3 |
 | AI's Predictable Path: Things to Expect from AI in 2024 | 2024-01 | 1 | -13.3 |
 
-- Both queries returned the same results, but the window function was much faster. In January, the average story had about 14.3 points, even though most stories scored only 1 to 7 points, because a few very popular stories pulled the average up. EXPLAIN ANALYZE timings: the naive query took about 72.8 seconds, while the window query took only 1.06 seconds, making it roughly 69 times faster. This is because the naive query repeatedly calculates the monthly average for each story, while the window function calculates the averages more efficiently. Interestingly, when I added LIMIT 50, both queries ran in around 1.3 seconds because the naive query only needed to calculate averages for 50 returned rows.
+- Interesting result: In January, the average AI story had about 14.3 points, even though many stories scored only 1 to 7 points: a few popular stories pulled up the mean.  EXPLAIN ANALYZE runs returned 32,629 rows each. The naive form took **206,817.825 ms (206.818 s)** and the window form took **1,991.527 ms (1.992 s)**, a **103.85× speedup**. The naive query repeatedly calculates the monthly average for each story, executing the correlated aggregate 32,629 times. The window query computes averages by month using a window function. Both final sorts spilled to disk; despite this, avoiding the repeated scans made the window form much faster.
 
 ## a08: Resubmitted URLs, canonical submission
 
@@ -174,4 +177,6 @@ Run everything: `uv run --env-file .env analytics/run_queries.py`
 | Viking 7B: open LLM for the Nordic languages trained on AMD GPUs | 113 | 52 | 13 days, 5:51:21 |
 | OpenAI Deal Lets Employees Sell Shares at $86B Valuation | 245 | 286 | 12 days, 23:12:31 |
 
-- Interesting result: No gap in the whole dataset exceeds about 14 days (the longest is 13 days, 22 hours), which looks like Hacker News closing old threads to new comments after roughly two weeks, so a thread cannot be "revived" for longer than that. Many of these stories also had relatively low points, suggesting that even less popular discussions can receive comments days later.
+- Interesting result: Among the qualifying AI threads, no reported gap exceeds about 14 days (the longest is 13 days, 22 hours), which looks like Hacker News closing old threads to new comments after roughly two weeks, but this query does not establish a site-wide commenting rule; the 2024-only comment slice also censors gaps across year boundaries. Many of these stories also had relatively low points, suggesting that even less popular discussions can receive comments days later.
+
+

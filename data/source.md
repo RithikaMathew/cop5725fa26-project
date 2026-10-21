@@ -28,8 +28,8 @@ pd.DataFrame(resp.json()["hits"]).to_csv("data/sample.csv", index=False)
 MIT (official Hacker News API, Y Combinator). See https://github.com/HackerNews/API.
 
 **Approximate size:**
-- Row count: 297,634 story submissions in 2024
-- Table count: 3 raw item types pulled from the API (stories, comments, poll options); normalized in `schema.sql` into 7 relational tables
+- Row count: 297,634 distinct loaded stories verified in the October 21, 2026 full load (the earlier Project 1 grader snapshot contained 297,625; live API results can change)
+- Table count: 3 raw item types pulled from the API (stories, comments, poll options); normalized in `schema.sql` into 8 relational tables plus a derived activity view
 
 **Update frequency:**
 Continuous, near real-time; this project uses a fixed 2024 date range for reproducibility.

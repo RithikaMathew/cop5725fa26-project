@@ -3,7 +3,12 @@
 
 -- Ambiguities / assumptions made while reconstructing:
 
---   1. Although the crow’s-foot indicates a 1:N relationship between trip and trip_payment, defining TRIP_PAYMENT.trip_id as both a primary key and foreign key prevents duplicate trip_id values and therefore enforces a 1:1 relationship, so the corrected table follows a 1:1 relationship.
+--   1. The diagram's "has" relationship is 1:1 between trip and trip_payment.
+--      TRIP_PAYMENT.trip_id is both PK and FK, following that relationship.
+--   2. Required relationship FKs are NOT NULL; unspecified descriptive fields
+--      are nullable because the diagram does not mark their nullability.
+--   3. IDs use INT/BIGINT, amounts DECIMAL(8,2), and instants TIMESTAMP;
+--      precision, lengths and time zones were not specified in the diagram.
 
 -- =============================================================================
 

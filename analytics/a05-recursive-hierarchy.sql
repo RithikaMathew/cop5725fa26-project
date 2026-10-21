@@ -1,7 +1,7 @@
 -- a05-recursive-hierarchy.sql
 -- Question: Which stories have the deepest reply chains, and how long is the deepest chain in each?
 -- Technique: WITH RECURSIVE walking comments.parent_comment_id from top-level comments down, with a depth bound of 200
--- Project 2 requirement: hierarchical traversal
+-- Project 2 requirement: own choice (hierarchical requirement struck October 18)
 
 WITH RECURSIVE thread AS (
   -- anchor: top-level comments (direct replies to the story) are depth 1

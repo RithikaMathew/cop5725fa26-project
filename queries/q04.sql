@@ -5,9 +5,10 @@ SELECT
     s.story_id,
     s.title,
     s.num_comments        AS hn_reported_comments,
-    COUNT(c.comment_id)   AS loaded_comments
+    COUNT(c.comment_id)   AS loaded_comments,
+    s.num_comments - COUNT(c.comment_id) AS missing_comments
 FROM stories s
 LEFT JOIN comments c ON c.story_id = s.story_id -- use a LEFT JOIN so stories with zero loaded comments still appear with 0, instead of being dropped
 GROUP BY s.story_id, s.title, s.num_comments
-ORDER BY hn_reported_comments DESC
+ORDER BY missing_comments DESC, s.story_id
 LIMIT 100;

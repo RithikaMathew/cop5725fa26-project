@@ -3,7 +3,7 @@
 -- Technique: correlated subquery (re-computes the month average for every story)
 -- Project 2 requirement: naive vs window comparison (naive form)
 
-WITH ai_stories AS MATERIALIZED (
+WITH ai_stories AS (
   SELECT story_id, title, points, date_trunc('month', created_at AT TIME ZONE 'UTC') AS month
   FROM   stories
   WHERE  title ~* '\m(ai|llm|llms|gpt|chatgpt|agents?|agentic|openai|anthropic|claude|copilot|rag|gemini|llama|mistral)\M'

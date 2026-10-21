@@ -6,7 +6,5 @@ SELECT
     COUNT(*) AS story_count,
     ROUND(AVG(points), 1) AS avg_points
 FROM stories
-WHERE title ILIKE '%python%'
-   OR title ILIKE '%code%'
-   OR story_text ILIKE '%python%'
-   OR story_text ILIKE '%code%';
+WHERE title ~* '\m(python|code)\M'
+   OR story_text ~* '\m(python|code)\M';
