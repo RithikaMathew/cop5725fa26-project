@@ -173,11 +173,3 @@ does not interrupt the load. The loader rebuilds the tables on every invocation.
 
 The October 18 Project 2 erratum requires seven patterns and at least nine questions;
 a05 remains an optional extra.
-### Full load verified on HiPerGator — October 21, 2026
-
-The cached full load completed successfully in 16 minutes 37 seconds
-(10:21:32–10:38:09). Final counts: users 141,436; domains 60,202;
-links 244,535; stories 297,634; story_tags 330,585; comments 3,094,184;
-polls 41; poll_options 485. The loader skipped 23,573 comments whose stories
-were outside the slice and one poll option with a missing ID. These measured
-counts supersede the earlier Project 1 reference counts for this cache.
