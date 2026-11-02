@@ -1,0 +1,10 @@
+query,runs,cold_execution_ms,warm_median_execution_ms
+b01-lookup-comments-by-story,5,2.28,0.50
+b02-lookup-comments-by-author,5,0.30,0.12
+b03-lookup-stories-by-author,5,1.89,0.85
+b04-range-comments-by-hour,5,1.85,1.63
+b05-range-stories-by-week,5,2.10,2.83
+b06-agg-stories-by-domain,5,6.60,5.31
+b07-agg-comments-by-author,5,22.07,14.11
+b08-join-stories-comments,5,7.87,5.97
+b09-join-comments-stories-by-user,5,0.16,0.12

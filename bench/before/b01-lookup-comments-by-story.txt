@@ -1,0 +1,27 @@
+Gather Merge  (cost=19722.71..19884.88 rows=1390 width=33) (actual time=10.845..12.066 rows=1754 loops=1)
+  Output: comment_id, parent_comment_id, author, created_at
+  Workers Planned: 2
+  Workers Launched: 2
+  Buffers: shared hit=13871 read=3950
+  ->  Sort  (cost=18722.68..18724.42 rows=695 width=33) (actual time=9.149..9.167 rows=585 loops=3)
+        Output: comment_id, parent_comment_id, author, created_at
+        Sort Key: comments.created_at
+        Sort Method: quicksort  Memory: 60kB
+        Buffers: shared hit=13871 read=3950
+        Worker 0:  actual time=8.160..8.171 rows=511 loops=1
+          Sort Method: quicksort  Memory: 50kB
+          Buffers: shared hit=3761 read=675
+        Worker 1:  actual time=8.538..8.551 rows=551 loops=1
+          Sort Method: quicksort  Memory: 53kB
+          Buffers: shared hit=3779 read=919
+        ->  Parallel Seq Scan on public.comments  (cost=0.00..18689.88 rows=695 width=33) (actual time=0.557..9.038 rows=585 loops=3)
+              Output: comment_id, parent_comment_id, author, created_at
+              Filter: (comments.story_id = 42473321)
+              Rows Removed by Filter: 62319
+              Buffers: shared hit=13757 read=3950
+              Worker 0:  actual time=0.312..8.041 rows=511 loops=1
+                Buffers: shared hit=3704 read=675
+              Worker 1:  actual time=0.406..8.408 rows=551 loops=1
+                Buffers: shared hit=3722 read=919
+Planning Time: 0.039 ms
+Execution Time: 12.113 ms

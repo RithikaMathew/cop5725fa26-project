@@ -5,8 +5,12 @@ Run:
     uv run --env-file .env load.py
     uv run --env-file .env load.py --demo
 
-The full run saves downloads in data/raw/. Later full runs reuse those files.
-Demo downloads have separate filenames, so they cannot replace the full data.
+MAX_ROWS (default 200000) caps the load at the most recent MAX_ROWS comments of
+2024 plus the stories posted in that same time window, which keeps a fresh
+download-and-load near 10 minutes. MAX_ROWS=0 loads the full year (hours).
+
+Downloads are saved in data/raw/ and reused by later runs. Capped and demo
+downloads have separate filenames, so they cannot replace the full data.
 """
 
 from __future__ import annotations
@@ -41,7 +45,8 @@ MAX_RETRIES = 5
 SLICE_START = 1704067200
 SLICE_END = 1735689600
 
-RAW_DIR = Path("data/raw")
+RAW_DIR = Path(__file__).parent / "data" / "raw"
+DEFAULT_MAX_ROWS = 200_000
 
 
 def get_with_retry(
@@ -160,6 +165,52 @@ def fetch_all_windowed(
     return left + right
 
 
+def fetch_recent(
+    tags: str, start: int, end: int, limit: int | None = None
+) -> list[dict]:
+    """Page backward from end, one request per 1000 hits, until start or limit."""
+    hits: list[dict] = []
+    seen: set[str] = set()
+    cursor = end
+    pages = 0
+
+    while limit is None or len(hits) < limit:
+        params = {
+            "tags": tags,
+            "numericFilters": f"created_at_i>={start},created_at_i<{cursor}",
+            "hitsPerPage": HITS_PER_PAGE,
+        }
+        batch = get_with_retry(ALGOLIA_BASE, params=params).json().get("hits", [])
+        new = [h for h in batch if h["objectID"] not in seen]
+        if not new:
+            break
+        seen.update(h["objectID"] for h in new)
+        hits.extend(new)
+
+        # Ask again for the oldest second so hits that share it are not lost;
+        # move past it only if a whole page falls inside that one second.
+        oldest = min(h["created_at_i"] for h in batch)
+        cursor = oldest + 1 if oldest + 1 < cursor else oldest
+        pages += 1
+        if pages % 25 == 0:
+            log.info(
+                "  %s: %d hits, back to %s",
+                tags,
+                len(hits),
+                datetime.fromtimestamp(oldest, tz=timezone.utc).isoformat(),
+            )
+        time.sleep(REQUEST_PAUSE_SECONDS)
+
+    log.info("Fetched %d %s hits", len(hits), tags)
+    return hits[:limit] if limit else hits
+
+
+def max_rows() -> int:
+    """Return the MAX_ROWS comment cap; 0 means load the full year."""
+    value = os.environ.get("MAX_ROWS", "").strip()
+    return int(value) if value else DEFAULT_MAX_ROWS
+
+
 def to_ts(hit: dict) -> str | None:
     if hit.get("created_at"):
         return hit["created_at"]
@@ -219,14 +270,14 @@ def domain_of(url: str | None) -> str | None:
     return netloc.lower().removeprefix("www.") or None
 
 
-def raw_path(name: str, demo: bool) -> Path:
-    suffix = "_demo" if demo else ""
+def raw_path(name: str, demo: bool, cap: int = 0) -> Path:
+    suffix = "_demo" if demo else f"_cap{cap}" if cap else ""
     return RAW_DIR / f"{name}{suffix}.json"
 
 
-def read_raw(name: str, demo: bool) -> list[dict] | None:
+def read_raw(name: str, demo: bool, cap: int = 0) -> list[dict] | None:
     """Return cached records, or None if this relation has not been fetched."""
-    path = raw_path(name, demo)
+    path = raw_path(name, demo, cap)
     if not path.exists():
         return None
 
@@ -238,10 +289,10 @@ def read_raw(name: str, demo: bool) -> list[dict] | None:
     return data
 
 
-def dump_raw(name: str, hits: list[dict], demo: bool) -> None:
+def dump_raw(name: str, hits: list[dict], demo: bool, cap: int = 0) -> None:
     """Write a complete download before giving it its final filename."""
     RAW_DIR.mkdir(parents=True, exist_ok=True)
-    path = raw_path(name, demo)
+    path = raw_path(name, demo, cap)
     temporary = path.with_suffix(".json.tmp")
     temporary.write_text(json.dumps(hits))
     temporary.replace(path)
@@ -249,7 +300,7 @@ def dump_raw(name: str, hits: list[dict], demo: bool) -> None:
 
 
 def write_sample(name: str, hits: list[dict]) -> None:
-    samples_dir = Path("data/samples")
+    samples_dir = Path(__file__).parent / "data" / "samples"
     samples_dir.mkdir(parents=True, exist_ok=True)
     path = samples_dir / f"{name}.json"
     path.write_text(json.dumps(hits[:1000]))
@@ -264,7 +315,7 @@ def write_sample(name: str, hits: list[dict]) -> None:
 def run_schema(conn: psycopg.Connection) -> None:
     log.info("Running schema.sql (drop + create) ...")
     with conn.cursor() as cur:
-        cur.execute(Path("schema.sql").read_text())
+        cur.execute((Path(__file__).parent / "schema.sql").read_text())
     conn.commit()
     log.info("Schema created.")
 
@@ -541,6 +592,36 @@ def print_row_counts(conn: psycopg.Connection) -> None:
             log.info("  %-14s %d", table, cur.fetchone()[0])
 
 
+def read_or_fetch_capped(cap: int) -> tuple[list[dict], list[dict]]:
+    """Return the newest `cap` 2024 comments and the stories in their window.
+
+    A full-year cache in data/raw/ is trimmed to the cap; otherwise only the
+    capped window is downloaded and cached under a _cap<N> filename.
+    """
+    comment_hits = read_raw("comments", False) or read_raw("comments", False, cap)
+    if comment_hits is None:
+        log.info("Fetching the newest %d comments of 2024 (MAX_ROWS) ...", cap)
+        comment_hits = fetch_recent("comment", SLICE_START, SLICE_END, cap)
+        dump_raw("comments", comment_hits, False, cap)
+    comment_hits = sorted(
+        comment_hits, key=lambda h: h["created_at_i"], reverse=True
+    )[:cap]
+    window_start = min(h["created_at_i"] for h in comment_hits)
+    log.info(
+        "Capped window starts %s",
+        datetime.fromtimestamp(window_start, tz=timezone.utc).isoformat(),
+    )
+
+    story_hits = read_raw("stories", False) or read_raw("stories", False, cap)
+    if story_hits is None:
+        log.info("Fetching stories and polls in the capped window ...")
+        story_hits = fetch_recent("story", window_start, SLICE_END)
+        story_hits += fetch_recent("poll", window_start, SLICE_END)
+        dump_raw("stories", story_hits, False, cap)
+    story_hits = [h for h in story_hits if h["created_at_i"] >= window_start]
+    return story_hits, comment_hits
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -554,12 +635,18 @@ def main() -> None:
     if not database_url:
         log.error("DATABASE_URL is not set. Set it in .env first.")
         sys.exit(1)
+    started = time.monotonic()
 
     # Recreate the database before loading, including when using cached data.
     with psycopg.connect(database_url, client_encoding="UTF8") as conn:
         run_schema(conn)
 
-    story_hits = read_raw("stories", args.demo)
+    cap = 0 if args.demo else max_rows()
+    if cap:
+        story_hits, comment_hits = read_or_fetch_capped(cap)
+    else:
+        story_hits = read_raw("stories", args.demo)
+        comment_hits = read_raw("comments", args.demo)
     if story_hits is None:
         log.info("Fetching 2024 stories and polls ...")
         fetch = fetch_all if args.demo else fetch_all_windowed
@@ -577,7 +664,6 @@ def main() -> None:
     write_sample("polls", poll_hits)
         
 
-    comment_hits = read_raw("comments", args.demo)
     if comment_hits is None:
         log.info("Fetching 2024 comments ...")
         fetch = fetch_all if args.demo else fetch_all_windowed
@@ -586,7 +672,7 @@ def main() -> None:
         dump_raw("comments", comment_hits, args.demo)
     write_sample("comments", comment_hits)
 
-    poll_opt_hits = read_raw("poll_options", args.demo)
+    poll_opt_hits = read_raw("poll_options", args.demo, cap)
     if poll_opt_hits is None:
         poll_story_ids = sorted(
             {
@@ -600,7 +686,7 @@ def main() -> None:
 
         log.info("Fetching poll options for %d polls ...", len(poll_story_ids))
         poll_opt_hits = fetch_poll_options(poll_story_ids)
-        dump_raw("poll_options", poll_opt_hits, args.demo)
+        dump_raw("poll_options", poll_opt_hits, args.demo, cap)
     write_sample("poll_options", poll_opt_hits)
 
     with psycopg.connect(database_url, client_encoding="UTF8") as conn:
@@ -615,7 +701,7 @@ def main() -> None:
         load_polls(conn, story_hits, poll_opt_hits)
         print_row_counts(conn)
 
-    log.info("Done.")
+    log.info("Done in %.0f s.", time.monotonic() - started)
 
 
 if __name__ == "__main__":

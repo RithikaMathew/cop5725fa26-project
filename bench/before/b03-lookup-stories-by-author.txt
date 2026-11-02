@@ -1,0 +1,12 @@
+Sort  (cost=899.40..900.38 rows=392 width=76) (actual time=0.687..0.694 rows=392 loops=1)
+  Output: story_id, title, points, num_comments, created_at
+  Sort Key: stories.created_at DESC
+  Sort Method: quicksort  Memory: 60kB
+  Buffers: shared hit=638
+  ->  Seq Scan on public.stories  (cost=0.00..882.51 rows=392 width=76) (actual time=0.011..0.655 rows=392 loops=1)
+        Output: story_id, title, points, num_comments, created_at
+        Filter: (stories.author = 'thunderbong'::text)
+        Rows Removed by Filter: 19169
+        Buffers: shared hit=638
+Planning Time: 0.006 ms
+Execution Time: 0.701 ms

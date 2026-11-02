@@ -10,11 +10,12 @@ MS in Computer Science, University of Florida
 
 ## Local Environment Setup
 
-Installed and verified locally on macOS (Apple Silicon):
+Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/) (`curl -LsSf https://astral.sh/uv/install.sh | sh`). From a fresh clone:
 
-- uv (Python package/env manager): `curl -LsSf https://astral.sh/uv/install.sh | sh`
-- Project + base dependencies: `uv init cop5725fa26-project && cd cop5725fa26-project && uv add duckdb pandas`
-- Optional PostgreSQL extra (only needed to run the opt-in check): `uv add --optional postgres "psycopg[binary]"`
+```bash
+cp .env.example .env   # then set DATABASE_URL (see the comments in the file)
+uv sync                # installs every dependency listed in pyproject.toml
+```
 
 ## Parquet vs. CSV
 
@@ -50,7 +51,7 @@ As a developer relations analyst for a company making AI and agentic developer t
    uv run --env-file .env load.py
 ```
 
-The normal command fetches data for the full 2024 date range. For a quick test, `uv run --env-file .env load.py --demo` fetches a smaller sample. The loader saves the fetched records as JSON in `data/raw/`. It then runs `schema.sql` to recreate the tables and inserts the records with `psycopg`. Running the loader again rebuilds the database rather than adding duplicate rows.
+Since Project 3 the normal command loads a capped slice: the newest `MAX_ROWS` (default 200,000) comments of 2024 and the stories in that window, in about 8 minutes. Set `MAX_ROWS=0` to fetch the full 2024 date range (about 3 hours). For a quick test, `uv run --env-file .env load.py --demo` fetches a smaller sample. The loader saves the fetched records as JSON in `data/raw/`. It then runs `schema.sql` to recreate the tables and inserts the records with `psycopg`. Running the loader again rebuilds the database rather than adding duplicate rows.
 
 ### Running a Query
 
@@ -173,3 +174,46 @@ does not interrupt the load. The loader rebuilds the tables on every invocation.
 
 The October 18 Project 2 erratum requires seven patterns and at least nine questions;
 a05 remains an optional extra.
+
+
+## Project 3: Indexing and Query Optimization
+
+The full write-up is in [`tuning.md`](tuning.md). I wrote nine queries in
+`bench/queries/` that my DevRel scenario would run often, timed them with the
+course's `bench/benchmark.py`, added four indexes in
+[`schema-changes.sql`](schema-changes.sql), and timed them again.
+[`schema-changes-undo.sql`](schema-changes-undo.sql) removes the indexes.
+
+Biggest improvements (warm median on my laptop):
+
+- **b07-agg-comments-by-author: 107.3 ms to 14.1 ms.** An index on
+  `(author, story_id)` lets PostgreSQL skip a slow sort on usernames.
+- **b06-agg-stories-by-domain: 74.7 ms to 5.3 ms.** A full-text (GIN) index on
+  story titles, so it no longer processes every title.
+- **b01-lookup-comments-by-story: 13.3 ms to 0.50 ms.** An index on
+  `comments.story_id`, which is a foreign key with no index by default.
+
+**Row cap:** `load.py` now reads `MAX_ROWS` (default 200000). It loads the newest
+200,000 comments of 2024 and the stories from those same days (December 4 to 31).
+That works out to 188,712 comments and 19,561 stories. A fresh load into an
+empty database took 7.8 minutes on my laptop and 5.5 minutes on HiPerGator.
+After the first download, reloading from `data/raw/` takes about 12 seconds.
+Set `MAX_ROWS=0` to load the whole year (this takes hours).
+
+### How to reproduce
+
+```bash
+cp .env.example .env            # then edit DATABASE_URL
+uv sync
+uv run --env-file .env load.py  # Project 1 loader, into an empty database
+set -a; source .env; set +a
+psql "$DATABASE_URL" -c "VACUUM ANALYZE;"   # fresh statistics before the baseline
+uv run --env-file .env bench/benchmark.py before
+psql "$DATABASE_URL" -f schema-changes.sql
+uv run --env-file .env bench/benchmark.py after
+```
+
+On HiPerGator, start the server and create `.env` the same way as in Project 2
+step 1, and run `module load ubuntu` before using `psql`. To go back to the
+starting state, run `psql "$DATABASE_URL" -f schema-changes-undo.sql`. Both SQL
+files are safe to run more than once.

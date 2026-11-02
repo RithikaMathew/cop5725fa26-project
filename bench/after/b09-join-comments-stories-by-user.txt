@@ -1,0 +1,26 @@
+Sort  (cost=104.72..104.75 rows=12 width=76) (actual time=0.110..0.111 rows=58 loops=1)
+  Output: s.story_id, s.title, (count(*)), (max(c.created_at))
+  Sort Key: (count(*)) DESC, (max(c.created_at)) DESC
+  Sort Method: quicksort  Memory: 29kB
+  Buffers: shared hit=527
+  ->  GroupAggregate  (cost=0.71..104.50 rows=12 width=76) (actual time=0.006..0.101 rows=58 loops=1)
+        Output: s.story_id, s.title, count(*), max(c.created_at)
+        Group Key: s.story_id
+        Buffers: shared hit=527
+        ->  Nested Loop  (cost=0.71..104.29 rows=12 width=68) (actual time=0.004..0.088 rows=174 loops=1)
+              Output: s.story_id, s.title, c.created_at
+              Inner Unique: true
+              Buffers: shared hit=527
+              ->  Index Only Scan using idx_comments_author_story_incl on public.comments c  (cost=0.42..4.63 rows=12 width=16) (actual time=0.003..0.012 rows=174 loops=1)
+                    Output: c.author, c.story_id, c.created_at
+                    Index Cond: (c.author = 'simonw'::text)
+                    Heap Fetches: 0
+                    Buffers: shared hit=5
+              ->  Index Scan using stories_pkey on public.stories s  (cost=0.29..8.30 rows=1 width=60) (actual time=0.000..0.000 rows=1 loops=174)
+                    Output: s.story_id, s.author, s.title, s.url, s.story_text, s.points, s.num_comments, s.is_ask_hn, s.is_show_hn, s.created_at, s.updated_at
+                    Index Cond: (s.story_id = c.story_id)
+                    Buffers: shared hit=522
+Planning:
+  Buffers: shared hit=16
+Planning Time: 0.039 ms
+Execution Time: 0.115 ms

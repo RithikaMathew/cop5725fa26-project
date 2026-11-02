@@ -1,0 +1,30 @@
+Limit  (cost=19691.82..19697.65 rows=50 width=56) (actual time=12.570..13.698 rows=50 loops=1)
+  Output: comment_id, story_id, created_at, ("left"(comment_text, 120))
+  Buffers: shared hit=14290 read=3531
+  ->  Gather Merge  (cost=19691.82..19705.82 rows=120 width=56) (actual time=12.569..13.695 rows=50 loops=1)
+        Output: comment_id, story_id, created_at, ("left"(comment_text, 120))
+        Workers Planned: 2
+        Workers Launched: 2
+        Buffers: shared hit=14290 read=3531
+        ->  Sort  (cost=18691.80..18691.95 rows=60 width=56) (actual time=11.186..11.188 rows=41 loops=3)
+              Output: comment_id, story_id, created_at, ("left"(comment_text, 120))
+              Sort Key: comments.created_at DESC
+              Sort Method: quicksort  Memory: 40kB
+              Buffers: shared hit=14290 read=3531
+              Worker 0:  actual time=10.371..10.372 rows=50 loops=1
+                Sort Method: quicksort  Memory: 39kB
+                Buffers: shared hit=3926 read=1167
+              Worker 1:  actual time=10.685..10.686 rows=50 loops=1
+                Sort Method: quicksort  Memory: 38kB
+                Buffers: shared hit=3963 read=417
+              ->  Parallel Seq Scan on public.comments  (cost=0.00..18690.03 rows=60 width=56) (actual time=0.153..11.150 rows=58 loops=3)
+                    Output: comment_id, story_id, created_at, "left"(comment_text, 120)
+                    Filter: (comments.author = 'simonw'::text)
+                    Rows Removed by Filter: 62846
+                    Buffers: shared hit=14176 read=3531
+                    Worker 0:  actual time=0.049..10.319 rows=60 loops=1
+                      Buffers: shared hit=3869 read=1167
+                    Worker 1:  actual time=0.327..10.637 rows=52 loops=1
+                      Buffers: shared hit=3906 read=417
+Planning Time: 0.038 ms
+Execution Time: 13.705 ms

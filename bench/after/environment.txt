@@ -1,0 +1,46 @@
+client_os                             macOS-27.0-arm64-arm-64bit-Mach-O
+client_python                         3.13.2
+postgresql_version                    PostgreSQL 17.11 (Homebrew) on aarch64-apple-darwin24.6.0, compiled by Apple clang version 17.0.0 (clang-1700.6.4.2), 64-bit
+database                              hn_p3
+database_size                         191 MB
+server_started                        2026-09-23 19:56:12.178455-04
+autovacuum                            on
+default_statistics_target             100
+effective_cache_size                  4GB
+effective_io_concurrency              0
+enable_bitmapscan                     on
+enable_indexscan                      on
+enable_seqscan                        on
+huge_pages                            try
+jit                                   on
+maintenance_work_mem                  64MB
+max_connections                       100
+max_parallel_workers_per_gather       2
+max_worker_processes                  8
+random_page_cost                      4
+seq_page_cost                         1
+server_version                        17.11 (Homebrew)
+shared_buffers                        128MB
+track_io_timing                       off
+work_mem                              4MB
+table:comments                        188712 rows, 165 MB, last analyze 2026-11-02 11:30:09.654612-05
+table:domains                         7116 rows, 848 kB, last analyze 2026-11-02 11:30:08.75759-05
+table:links                           16596 rows, 3776 kB, last analyze 2026-11-02 11:30:08.857691-05
+table:poll_options                    13 rows, 64 kB, last analyze 2026-11-02 11:30:09.656116-05
+table:polls                           3 rows, 56 kB, last analyze 2026-11-02 11:30:09.655404-05
+table:stories                         19561 rows, 7816 kB, last analyze 2026-11-02 11:30:09.210685-05
+table:story_tags                      21951 rows, 2216 kB, last analyze 2026-11-02 11:30:09.217275-05
+table:users                           32989 rows, 2872 kB, last analyze 2026-11-02 11:30:08.913927-05
+index:comments_pkey                   comments, 7456 kB
+index:domains_domain_name_key         domains, 264 kB
+index:domains_pkey                    domains, 176 kB
+index:idx_comments_author_story_incl  comments, 8512 kB
+index:idx_comments_created_at         comments, 4120 kB
+index:idx_comments_story_author       comments, 5120 kB
+index:idx_stories_title_fts           stories, 1608 kB
+index:links_pkey                      links, 2040 kB
+index:poll_options_pkey               poll_options, 16 kB
+index:polls_pkey                      polls, 16 kB
+index:stories_pkey                    stories, 784 kB
+index:story_tags_pkey                 story_tags, 1224 kB
+index:users_pkey                      users, 1504 kB

@@ -1,0 +1,39 @@
+Limit  (cost=5209.19..5209.24 rows=20 width=72) (actual time=5.682..5.684 rows=20 loops=1)
+  Output: s.story_id, s.title, s.points, (count(DISTINCT c.author))
+  Buffers: shared hit=2504
+  ->  Sort  (cost=5209.19..5211.02 rows=733 width=72) (actual time=5.682..5.683 rows=20 loops=1)
+        Output: s.story_id, s.title, s.points, (count(DISTINCT c.author))
+        Sort Key: (count(DISTINCT c.author)) DESC, s.story_id
+        Sort Method: top-N heapsort  Memory: 28kB
+        Buffers: shared hit=2504
+        ->  GroupAggregate  (cost=5129.31..5189.68 rows=733 width=72) (actual time=5.155..5.661 rows=231 loops=1)
+              Output: s.story_id, s.title, s.points, count(DISTINCT c.author)
+              Group Key: s.story_id
+              Buffers: shared hit=2504
+              ->  Sort  (cost=5129.31..5146.99 rows=7072 width=73) (actual time=5.153..5.250 rows=5799 loops=1)
+                    Output: s.story_id, s.title, s.points, c.author
+                    Sort Key: s.story_id, c.author
+                    Sort Method: quicksort  Memory: 723kB
+                    Buffers: shared hit=2504
+                    ->  Nested Loop  (cost=113.94..4677.13 rows=7072 width=73) (actual time=0.353..1.196 rows=5799 loops=1)
+                          Output: s.story_id, s.title, s.points, c.author
+                          Buffers: shared hit=2504
+                          ->  Bitmap Heap Scan on public.stories s  (cost=113.52..1473.24 rows=733 width=64) (actual time=0.351..0.523 rows=619 loops=1)
+                                Output: s.story_id, s.author, s.title, s.url, s.story_text, s.points, s.num_comments, s.is_ask_hn, s.is_show_hn, s.created_at, s.updated_at
+                                Recheck Cond: (to_tsvector('english'::regconfig, s.title) @@ '''ai'' | ''llm'' | ''llms'' | ''agent'' | ''agent'' | ''agent'' | ''gpt'' | ''openai'' | ''anthrop'' | ''claud'' | ''gemini'''::tsquery)
+                                Filter: ((s.created_at >= '2024-12-15 19:00:00-05'::timestamp with time zone) AND (s.created_at < '2024-12-22 19:00:00-05'::timestamp with time zone))
+                                Rows Removed by Filter: 1580
+                                Heap Blocks: exact=607
+                                Buffers: shared hit=630
+                                ->  Bitmap Index Scan on idx_stories_title_fts  (cost=0.00..113.34 rows=2698 width=0) (actual time=0.258..0.258 rows=2199 loops=1)
+                                      Index Cond: (to_tsvector('english'::regconfig, s.title) @@ '''ai'' | ''llm'' | ''llms'' | ''agent'' | ''agent'' | ''agent'' | ''gpt'' | ''openai'' | ''anthrop'' | ''claud'' | ''gemini'''::tsquery)
+                                      Buffers: shared hit=23
+                          ->  Index Only Scan using idx_comments_story_author on public.comments c  (cost=0.42..3.86 rows=51 width=17) (actual time=0.000..0.001 rows=9 loops=619)
+                                Output: c.story_id, c.author
+                                Index Cond: (c.story_id = s.story_id)
+                                Heap Fetches: 0
+                                Buffers: shared hit=1874
+Planning:
+  Buffers: shared hit=17
+Planning Time: 0.099 ms
+Execution Time: 5.691 ms

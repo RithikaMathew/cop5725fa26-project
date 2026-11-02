@@ -1,0 +1,15 @@
+Limit  (cost=1088.48..1088.55 rows=30 width=85) (actual time=1.768..1.770 rows=30 loops=1)
+  Output: story_id, title, author, points, num_comments, created_at
+  Buffers: shared hit=638
+  ->  Sort  (cost=1088.48..1101.77 rows=5318 width=85) (actual time=1.768..1.769 rows=30 loops=1)
+        Output: story_id, title, author, points, num_comments, created_at
+        Sort Key: stories.points DESC
+        Sort Method: top-N heapsort  Memory: 30kB
+        Buffers: shared hit=638
+        ->  Seq Scan on public.stories  (cost=0.00..931.41 rows=5318 width=85) (actual time=0.020..1.231 rows=5338 loops=1)
+              Output: story_id, title, author, points, num_comments, created_at
+              Filter: ((stories.created_at >= '2024-12-15 19:00:00-05'::timestamp with time zone) AND (stories.created_at < '2024-12-22 19:00:00-05'::timestamp with time zone))
+              Rows Removed by Filter: 14223
+              Buffers: shared hit=638
+Planning Time: 0.023 ms
+Execution Time: 1.772 ms

@@ -1,0 +1,11 @@
+Sort  (cost=5312.44..5316.83 rows=1755 width=33) (actual time=0.413..0.444 rows=1754 loops=1)
+  Output: comment_id, parent_comment_id, author, created_at
+  Sort Key: comments.created_at
+  Sort Method: quicksort  Memory: 138kB
+  Buffers: shared hit=1687
+  ->  Index Scan using idx_comments_story_author on public.comments  (cost=0.42..5217.87 rows=1755 width=33) (actual time=0.003..0.239 rows=1754 loops=1)
+        Output: comment_id, parent_comment_id, author, created_at
+        Index Cond: (comments.story_id = 42473321)
+        Buffers: shared hit=1687
+Planning Time: 0.010 ms
+Execution Time: 0.476 ms

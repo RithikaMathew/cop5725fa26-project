@@ -1,0 +1,16 @@
+GroupAggregate  (cost=742.87..908.70 rows=7366 width=16) (actual time=0.962..1.699 rows=24 loops=1)
+  Output: (date_trunc('hour'::text, (created_at AT TIME ZONE 'UTC'::text))), count(*)
+  Group Key: (date_trunc('hour'::text, (comments.created_at AT TIME ZONE 'UTC'::text)))
+  Buffers: shared hit=24
+  ->  Sort  (cost=742.87..761.32 rows=7378 width=8) (actual time=0.942..1.257 rows=7462 loops=1)
+        Output: (date_trunc('hour'::text, (created_at AT TIME ZONE 'UTC'::text)))
+        Sort Key: (date_trunc('hour'::text, (comments.created_at AT TIME ZONE 'UTC'::text)))
+        Sort Method: quicksort  Memory: 193kB
+        Buffers: shared hit=24
+        ->  Index Only Scan using idx_comments_created_at on public.comments  (cost=0.42..268.87 rows=7378 width=8) (actual time=0.003..0.779 rows=7462 loops=1)
+              Output: date_trunc('hour'::text, (created_at AT TIME ZONE 'UTC'::text))
+              Index Cond: ((comments.created_at >= '2024-12-19 19:00:00-05'::timestamp with time zone) AND (comments.created_at < '2024-12-20 19:00:00-05'::timestamp with time zone))
+              Heap Fetches: 0
+              Buffers: shared hit=24
+Planning Time: 0.014 ms
+Execution Time: 1.704 ms

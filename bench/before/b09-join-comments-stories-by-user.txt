@@ -1,0 +1,62 @@
+Sort  (cost=20088.44..20088.80 rows=145 width=76) (actual time=12.537..13.808 rows=58 loops=1)
+  Output: s.story_id, s.title, (count(*)), (max(c.created_at))
+  Sort Key: (count(*)) DESC, (max(c.created_at)) DESC
+  Sort Method: quicksort  Memory: 29kB
+  Buffers: shared hit=15968 read=2279
+  ->  Finalize GroupAggregate  (cost=20065.83..20083.23 rows=145 width=76) (actual time=12.480..13.795 rows=58 loops=1)
+        Output: s.story_id, s.title, count(*), max(c.created_at)
+        Group Key: s.story_id
+        Buffers: shared hit=15968 read=2279
+        ->  Gather Merge  (cost=20065.83..20080.88 rows=120 width=76) (actual time=12.477..13.779 rows=94 loops=1)
+              Output: s.story_id, s.title, (PARTIAL count(*)), (PARTIAL max(c.created_at))
+              Workers Planned: 2
+              Workers Launched: 2
+              Buffers: shared hit=15968 read=2279
+              ->  Partial GroupAggregate  (cost=19065.81..19067.01 rows=60 width=76) (actual time=10.591..10.603 rows=31 loops=3)
+                    Output: s.story_id, s.title, PARTIAL count(*), PARTIAL max(c.created_at)
+                    Group Key: s.story_id
+                    Buffers: shared hit=15968 read=2279
+                    Worker 0:  actual time=9.564..9.572 rows=32 loops=1
+                      Buffers: shared hit=4791 read=68
+                    Worker 1:  actual time=9.840..9.847 rows=26 loops=1
+                      Buffers: shared hit=4292 read=177
+                    ->  Sort  (cost=19065.81..19065.96 rows=60 width=68) (actual time=10.586..10.588 rows=58 loops=3)
+                          Output: s.story_id, s.title, c.created_at
+                          Sort Key: s.story_id
+                          Sort Method: quicksort  Memory: 29kB
+                          Buffers: shared hit=15968 read=2279
+                          Worker 0:  actual time=9.558..9.559 rows=59 loops=1
+                            Sort Method: quicksort  Memory: 29kB
+                            Buffers: shared hit=4791 read=68
+                          Worker 1:  actual time=9.833..9.835 rows=54 loops=1
+                            Sort Method: quicksort  Memory: 29kB
+                            Buffers: shared hit=4292 read=177
+                          ->  Nested Loop  (cost=0.29..19064.04 rows=60 width=68) (actual time=0.150..10.572 rows=58 loops=3)
+                                Output: s.story_id, s.title, c.created_at
+                                Inner Unique: true
+                                Buffers: shared hit=15952 read=2279
+                                Worker 0:  actual time=0.220..9.541 rows=59 loops=1
+                                  Buffers: shared hit=4783 read=68
+                                Worker 1:  actual time=0.147..9.815 rows=54 loops=1
+                                  Buffers: shared hit=4284 read=177
+                                ->  Parallel Seq Scan on public.comments c  (cost=0.00..18689.88 rows=60 width=16) (actual time=0.145..10.483 rows=58 loops=3)
+                                      Output: c.comment_id, c.story_id, c.parent_comment_id, c.author, c.comment_text, c.created_at
+                                      Filter: (c.author = 'simonw'::text)
+                                      Rows Removed by Filter: 62846
+                                      Buffers: shared hit=15428 read=2279
+                                      Worker 0:  actual time=0.214..9.440 rows=59 loops=1
+                                        Buffers: shared hit=4605 read=68
+                                      Worker 1:  actual time=0.139..9.722 rows=54 loops=1
+                                        Buffers: shared hit=4121 read=177
+                                ->  Index Scan using stories_pkey on public.stories s  (cost=0.29..6.24 rows=1 width=60) (actual time=0.001..0.001 rows=1 loops=174)
+                                      Output: s.story_id, s.author, s.title, s.url, s.story_text, s.points, s.num_comments, s.is_ask_hn, s.is_show_hn, s.created_at, s.updated_at
+                                      Index Cond: (s.story_id = c.story_id)
+                                      Buffers: shared hit=524
+                                      Worker 0:  actual time=0.001..0.002 rows=1 loops=59
+                                        Buffers: shared hit=178
+                                      Worker 1:  actual time=0.001..0.001 rows=1 loops=54
+                                        Buffers: shared hit=163
+Planning:
+  Buffers: shared hit=8
+Planning Time: 0.080 ms
+Execution Time: 13.821 ms

@@ -1,0 +1,39 @@
+Finalize GroupAggregate  (cost=20090.33..21054.64 rows=7720 width=16) (actual time=11.027..12.197 rows=24 loops=1)
+  Output: (date_trunc('hour'::text, (created_at AT TIME ZONE 'UTC'::text))), count(*)
+  Group Key: (date_trunc('hour'::text, (comments.created_at AT TIME ZONE 'UTC'::text)))
+  Buffers: shared hit=14737 read=3082
+  ->  Gather Merge  (cost=20090.33..20906.62 rows=6444 width=16) (actual time=11.015..12.191 rows=71 loops=1)
+        Output: (date_trunc('hour'::text, (created_at AT TIME ZONE 'UTC'::text))), (PARTIAL count(*))
+        Workers Planned: 2
+        Workers Launched: 2
+        Buffers: shared hit=14737 read=3082
+        ->  Partial GroupAggregate  (cost=19090.30..19162.80 rows=3222 width=16) (actual time=9.605..9.716 rows=24 loops=3)
+              Output: (date_trunc('hour'::text, (created_at AT TIME ZONE 'UTC'::text))), PARTIAL count(*)
+              Group Key: (date_trunc('hour'::text, (comments.created_at AT TIME ZONE 'UTC'::text)))
+              Buffers: shared hit=14737 read=3082
+              Worker 0:  actual time=8.844..8.945 rows=24 loops=1
+                Buffers: shared hit=4112 read=546
+              Worker 1:  actual time=9.131..9.231 rows=23 loops=1
+                Buffers: shared hit=4328 read=531
+              ->  Sort  (cost=19090.30..19098.36 rows=3222 width=8) (actual time=9.598..9.644 rows=2487 loops=3)
+                    Output: (date_trunc('hour'::text, (created_at AT TIME ZONE 'UTC'::text)))
+                    Sort Key: (date_trunc('hour'::text, (comments.created_at AT TIME ZONE 'UTC'::text)))
+                    Sort Method: quicksort  Memory: 97kB
+                    Buffers: shared hit=14737 read=3082
+                    Worker 0:  actual time=8.834..8.875 rows=2396 loops=1
+                      Sort Method: quicksort  Memory: 97kB
+                      Buffers: shared hit=4112 read=546
+                    Worker 1:  actual time=9.123..9.164 rows=2320 loops=1
+                      Sort Method: quicksort  Memory: 97kB
+                      Buffers: shared hit=4328 read=531
+                    ->  Parallel Seq Scan on public.comments  (cost=0.00..18902.56 rows=3222 width=8) (actual time=0.839..9.499 rows=2487 loops=3)
+                          Output: date_trunc('hour'::text, (created_at AT TIME ZONE 'UTC'::text))
+                          Filter: ((comments.created_at >= '2024-12-19 19:00:00-05'::timestamp with time zone) AND (comments.created_at < '2024-12-20 19:00:00-05'::timestamp with time zone))
+                          Rows Removed by Filter: 60417
+                          Buffers: shared hit=14625 read=3082
+                          Worker 0:  actual time=0.635..8.725 rows=2396 loops=1
+                            Buffers: shared hit=4056 read=546
+                          Worker 1:  actual time=0.927..9.016 rows=2320 loops=1
+                            Buffers: shared hit=4272 read=531
+Planning Time: 0.028 ms
+Execution Time: 12.205 ms

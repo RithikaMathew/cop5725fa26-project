@@ -1,0 +1,50 @@
+Limit  (cost=6676.56..6676.61 rows=20 width=56) (actual time=74.414..74.415 rows=20 loops=1)
+  Output: d.domain_name, (count(*)), (round(avg(s.points), 1))
+  Buffers: shared hit=896
+  ->  Sort  (cost=6676.56..6679.18 rows=1049 width=56) (actual time=74.414..74.414 rows=20 loops=1)
+        Output: d.domain_name, (count(*)), (round(avg(s.points), 1))
+        Sort Key: (count(*)) DESC, d.domain_name
+        Sort Method: top-N heapsort  Memory: 26kB
+        Buffers: shared hit=896
+        ->  GroupAggregate  (cost=6622.42..6648.65 rows=1049 width=56) (actual time=73.965..74.302 rows=979 loops=1)
+              Output: d.domain_name, count(*), round(avg(s.points), 1)
+              Group Key: d.domain_name
+              Buffers: shared hit=896
+              ->  Sort  (cost=6622.42..6625.04 rows=1049 width=20) (actual time=73.964..74.000 rows=2033 loops=1)
+                    Output: d.domain_name, s.points
+                    Sort Key: d.domain_name
+                    Sort Method: quicksort  Memory: 123kB
+                    Buffers: shared hit=896
+                    ->  Hash Join  (cost=791.52..6569.79 rows=1049 width=20) (actual time=1.944..71.891 rows=2033 loops=1)
+                          Output: d.domain_name, s.points
+                          Inner Unique: true
+                          Hash Cond: (l.domain_id = d.domain_id)
+                          Buffers: shared hit=896
+                          ->  Hash Join  (cost=585.41..6360.93 rows=1049 width=8) (actual time=1.349..71.122 rows=2033 loops=1)
+                                Output: s.points, l.domain_id
+                                Inner Unique: true
+                                Hash Cond: (s.url = l.url)
+                                Buffers: shared hit=850
+                                ->  Seq Scan on public.stories s  (cost=0.00..5772.76 rows=1049 width=72) (actual time=0.053..69.487 rows=2199 loops=1)
+                                      Output: s.story_id, s.author, s.title, s.url, s.story_text, s.points, s.num_comments, s.is_ask_hn, s.is_show_hn, s.created_at, s.updated_at
+                                      Filter: (to_tsvector('english'::regconfig, s.title) @@ '''ai'' | ''llm'' | ''llms'' | ''agent'' | ''agent'' | ''agent'' | ''gpt'' | ''openai'' | ''anthrop'' | ''claud'' | ''gemini'''::tsquery)
+                                      Rows Removed by Filter: 17362
+                                      Buffers: shared hit=638
+                                ->  Hash  (cost=377.96..377.96 rows=16596 width=72) (actual time=1.294..1.294 rows=16596 loops=1)
+                                      Output: l.url, l.domain_id
+                                      Buckets: 32768  Batches: 1  Memory Usage: 1971kB
+                                      Buffers: shared hit=212
+                                      ->  Seq Scan on public.links l  (cost=0.00..377.96 rows=16596 width=72) (actual time=0.001..0.340 rows=16596 loops=1)
+                                            Output: l.url, l.domain_id
+                                            Buffers: shared hit=212
+                          ->  Hash  (cost=117.16..117.16 rows=7116 width=20) (actual time=0.594..0.594 rows=7116 loops=1)
+                                Output: d.domain_name, d.domain_id
+                                Buckets: 8192  Batches: 1  Memory Usage: 439kB
+                                Buffers: shared hit=46
+                                ->  Seq Scan on public.domains d  (cost=0.00..117.16 rows=7116 width=20) (actual time=0.001..0.217 rows=7116 loops=1)
+                                      Output: d.domain_name, d.domain_id
+                                      Buffers: shared hit=46
+Planning:
+  Buffers: shared hit=14
+Planning Time: 0.257 ms
+Execution Time: 74.424 ms
