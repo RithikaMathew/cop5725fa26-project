@@ -159,10 +159,7 @@ from the index. b04 went from **12.27 to 1.63 ms**.
    a tiny bit faster, but the indexes I already had were fast enough, and
    every extra index makes inserts slower and takes space.
 
-**b03 and b05 didn't change.** The stories table is only 638 pages and
-always in memory, so reading all of it takes under 2 ms, and no index beat that. Their
-before and after plans are exactly the same, so the small differences in timing
-are just noise.
+**b03 and b05 did not benefit from the new indexes.** Their warm execution times increased from 0.71 to 0.85 ms (b03) and from 1.76 to 2.83 ms (b05). However, their execution plans remained unchanged, and neither query uses the new indexes. Since both queries scan the relatively small `stories` table, these differences may reflect normal run-to-run variation rather than a regression caused by indexing. I therefore kept the original plans instead of adding indexes that did not demonstrate a consistent benefit.
 
 ## 5. Final Measurements (laptop)
 
@@ -170,9 +167,9 @@ are just noise.
 |---|---:|---:|---:|---:|---|
 | b01-lookup-comments-by-story | 24.08 | 13.29 | 2.28 | 0.50 | 27x faster |
 | b02-lookup-comments-by-author | 12.09 | 11.79 | 0.30 | 0.12 | 98x faster |
-| b03-lookup-stories-by-author | 1.47 | 0.71 | 1.89 | 0.85 | no change |
+| b03-lookup-stories-by-author | 1.47 | 0.71 | 1.89 | 0.85 | 20% slower; same plan |
 | b04-range-comments-by-hour | 12.81 | 12.27 | 1.85 | 1.63 | 7.5x faster |
-| b05-range-stories-by-week | 2.03 | 1.76 | 2.10 | 2.83 | no change |
+| b05-range-stories-by-week | 2.03 | 1.76 | 2.10 | 2.83 | 61% slower; same plan |
 | b06-agg-stories-by-domain | 75.97 | 74.66 | 6.60 | 5.31 | 14x faster |
 | b07-agg-comments-by-author | 106.06 | 107.26 | 22.07 | 14.11 | 7.6x faster |
 | b08-join-stories-comments | 35.46 | 31.84 | 7.87 | 5.97 | 5.3x faster |
